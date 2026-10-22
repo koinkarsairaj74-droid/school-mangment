@@ -78,8 +78,147 @@ function studentPage(){
  if(!arr.length) rows='<tr><td colspan="6" class="empty">No students match this search. Add a student or try another search.</td></tr>';
  return '<section class="glass panel"><div class="pagehead"><div><h2 style="margin:0">Student management</h2><small style="color:var(--muted)">'+(records.Students||[]).length+' demo student records · Search by name, admission number, class, parent or contact</small></div><button class="btn" data-add="Students">＋ Add student</button></div><div class="tablewrap"><table class="data"><thead><tr><th>Student</th><th>Admission No.</th><th>Class</th><th>Parent / Contact</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+rows+'</tbody></table></div><p style="color:var(--muted);font-size:12px;margin:12px 0 0">Demo note: additions, edits and deletions are saved in this browser only. They are not visible to other users or devices.</p></section>';
 }
-function listPage(){let arr=records[page]||[],q=$('search').value.toLowerCase();arr=arr.filter(x=>(x.name+" "+x.detail+" "+x.status).toLowerCase().includes(q));let addable=!['Reports','Settings'].includes(page);let rows=arr.map((x,i)=>'<tr><td><b>'+escapeHtml(x.name)+'</b></td><td>'+escapeHtml(x.detail)+'</td><td><span class="badge">'+escapeHtml(x.status)+'</span></td></tr>').join('');return '<section class="glass panel"><div class="pagehead"><div><h2 style="margin:0">'+escapeHtml(page)+'</h2><small style="color:var(--muted)">Sample data · '+arr.length+' records shown</small></div>'+(addable?'<button class="btn" data-add="'+escapeHtml(page)+'">＋ Add '+escapeHtml(page==='Students'?'student':page==='Teachers'?'teacher':'record')+'</button>':'')+'</div><div class="tablewrap"><table class="data"><thead><tr><th>Name / Title</th><th>Details</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table>'+(arr.length?'':'<div class="empty">No matching demo records. Try another search or add a record.</div>')+'</div></section>'+(page==='Attendance'?'<section class="glass panel" style="margin-top:14px"><h2>Attendance demo</h2><p style="color:var(--muted)">This preview does not save real attendance. Add a demo entry above to try the interface.</p><button class="btn" data-add="Attendance">＋ Add attendance entry</button></section>':'')}
-function render(){document.querySelectorAll('.nav[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$('pagetitle').textContent=page==='Overview'?'School overview':page;$('content').innerHTML=page==='Overview'?overview():page==='Students'?studentPage():listPage();document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{page=b.dataset.page;$('search').value='';render()});document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>openForm(b.dataset.add));document.querySelectorAll('[data-student-edit]').forEach(b=>b.onclick=()=>openStudentForm(b.dataset.studentEdit));document.querySelectorAll('[data-student-delete]').forEach(b=>b.onclick=()=>{const s=records.Students.find(x=>x.id===b.dataset.studentDelete);if(!s)return;if(confirm('Delete '+s.name+' from this browser demo? This cannot be undone.')){records.Students=records.Students.filter(x=>x.id!==s.id);saveRecords();render();}});let ai=$('askai');if(ai)ai.onclick=()=>alert('AI Assistant demo: Keep student records organized, review attendance daily, and communicate upcoming assessments to parents. Real AI requires configuring an API on the hosted Laravel backend.')}
+function filterRosterBySearch(roster,query){
+ const q=String(query||"").trim().toLowerCase();
+ return q?roster.filter(s=>[s.name,s.admissionNo,s.grade,s.section].join(" ").toLowerCase().includes(q)):roster;
+}
+function attendancePage(){
+ const section=attendanceDraft.section;
+ const roster=attendanceRosterForCurrentSection();
+ const visible=filterRosterBySearch(roster,$("search").value);
+ const sessions=loadAttendanceSessions();
+ const rows=visible.map(s=>{
+  const marked=attendanceDraft.statuses[s.id]||"";
+  return '<tr data-att-row-id="'+escapeHtml(s.id)+'"><td>'+String(roster.indexOf(s)+1).padStart(2,"0")+'</td><td><span class="att-student-name">'+escapeHtml(s.name)+'</span><small class="att-subtext">'+escapeHtml(s.admissionNo)+'</small></td><td>'+escapeHtml(s.grade)+' · '+escapeHtml(s.section)+'</td><td><div class="att-buttons"><button type="button" class="status-btn '+(marked==="P"?"is-present":"")+'" data-att-student="'+escapeHtml(s.id)+'" data-att-status="P" aria-pressed="'+(marked==="P")+'">P · Present</button><button type="button" class="status-btn '+(marked==="A"?"is-absent":"")+'" data-att-student="'+escapeHtml(s.id)+'" data-att-status="A" aria-pressed="'+(marked==="A")+'">A · Absent</button></div></td></tr>';
+ }).join("");
+ const history=sessions.slice(0,5).map(s=>'<tr><td>'+escapeHtml(s.date)+'</td><td>Section '+escapeHtml(s.section)+'</td><td>'+escapeHtml(s.lecture)+'</td><td>'+Number(s.present||0)+' P / '+Number(s.absent||0)+' A</td><td>'+escapeHtml(s.photoName||"Photo attached")+'</td></tr>').join("");
+ const historyMarkup=history?'<div class="tablewrap"><table class="history-table"><thead><tr><th>Date</th><th>Section</th><th>Lecture</th><th>Attendance</th><th>Photo</th></tr></thead><tbody>'+history+'</tbody></table></div>':'<div class="empty">No attendance has been saved in this browser yet.</div>';
+ const photoMarkup=attendanceDraft.photoData?'<div class="photo-preview"><img src="'+attendanceDraft.photoData+'" alt="Uploaded attendance photo preview"><span>'+escapeHtml(attendanceDraft.photoName||"Photo ready")+'</span></div>':'<div class="photo-preview"><span>Photo preview will appear here after upload.</span></div>';
+ const sectionOptions=DEMO_SECTIONS.map(s=>'<option value="'+s+'" '+(s===section?"selected":"")+'>Section '+s+' · 30 students</option>').join("");
+ const lectures=["Lecture 1 · Mathematics","Lecture 2 · English","Lecture 3 · Science","Lecture 4 · Social Science","Lecture 5 · Marathi","Lecture 6 · Hindi","Lecture 7 · Computer","Lecture 8 · Sports"];
+ const lectureOptions='<option value="">Select lecture (required)</option>'+lectures.map(l=>'<option value="'+escapeHtml(l)+'" '+(l===attendanceDraft.lecture?"selected":"")+'>'+escapeHtml(l)+'</option>').join("");
+ return '<section class="glass attendance-hero"><div><div class="eyebrow">ATTENDANCE REGISTER · DEMO ROSTER</div><h2>Class attendance</h2><p>120 sample students · 30 each in Sections A, B, C and D</p></div><div class="teacher-chip"><small>CLASS TEACHER · SECTION '+section+'</small><b>'+escapeHtml(SECTION_TEACHERS[section]||"Class teacher not assigned")+'</b></div></section>'+
+ '<section class="glass attendance-controls"><div class="field"><label for="attendanceSection">Class / section <span class="mandatory">*</span></label><select id="attendanceSection" required>'+sectionOptions+'</select></div><div class="field"><label for="attendanceLecture">Lecture selection <span class="mandatory">*</span></label><select id="attendanceLecture" required>'+lectureOptions+'</select></div><div class="field"><label for="attendanceDate">Attendance date <span class="mandatory">*</span></label><input id="attendanceDate" type="date" required value="'+escapeHtml(attendanceDraft.date)+'"></div></section>'+
+ '<section class="attendance-stats"><div class="glass attendance-stat"><small>Total students in section</small><b id="attTotal">'+roster.length+'</b></div><div class="glass attendance-stat present"><small>Present (P)</small><b id="attPresent">0</b></div><div class="glass attendance-stat absent"><small>Absent (A)</small><b id="attAbsent">0</b></div><div class="glass attendance-stat"><small>Not marked</small><b id="attUnmarked">'+roster.length+'</b></div></section>'+
+ '<div class="attendance-toolbar"><p id="attendanceCountHint">Showing '+visible.length+' of '+roster.length+' students · Mark P or A for every student.</p><div class="attendance-actions"><button type="button" class="btn secondary" id="markAllPresent">Mark all Present</button><button type="button" class="btn secondary" id="clearAttendanceMarks">Clear marks</button></div></div>'+
+ '<section class="glass panel attendance-table"><div class="tablewrap"><table class="data"><thead><tr><th>No.</th><th>Student / admission no.</th><th>Class / section</th><th>Attendance · choose one</th></tr></thead><tbody id="attendanceRosterBody">'+(rows||'<tr><td colspan="4" class="empty">No students found for this search.</td></tr>')+'</tbody></table></div></section>'+
+ '<div class="attendance-submit-grid"><section class="glass photo-panel"><h3>Class photo <span class="mandatory">*</span></h3><p>Uploading a photo is mandatory to save this attendance sheet. An image preview will appear below.</p><input id="attendancePhoto" class="photo-input" type="file" accept="image/*" '+(attendanceDraft.photoData?"":"required")+'><div id="attendancePhotoPreview">'+photoMarkup+'</div></section><section class="glass attendance-save-panel"><h3>Review and save attendance</h3><p id="attendanceSaveHint">Choose a lecture, mark all '+roster.length+' students Present or Absent, and upload a class photo.</p><button type="button" class="btn" id="saveAttendance">Save attendance demo</button><p>Demo only: saved records and photo stay in this browser, not on a shared school server.</p></section></div>'+
+ '<section class="glass panel history-wrap"><div class="pagehead"><div><h2 style="margin:0">Recent saved attendance</h2><small style="color:var(--muted)">Latest five records saved in this browser</small></div></div>'+historyMarkup+'</section>';
+}
+function attendanceCounts(){
+ const roster=attendanceRosterForCurrentSection();
+ let present=0,absent=0;
+ roster.forEach(s=>{if(attendanceDraft.statuses[s.id]==="P")present++;else if(attendanceDraft.statuses[s.id]==="A")absent++;});
+ return {total:roster.length,present,absent,unmarked:roster.length-present-absent,roster};
+}
+function paintAttendanceState(){
+ if(page!=="Attendance")return;
+ const counts=attendanceCounts();
+ if($("attTotal"))$("attTotal").textContent=counts.total;
+ if($("attPresent"))$("attPresent").textContent=counts.present;
+ if($("attAbsent"))$("attAbsent").textContent=counts.absent;
+ if($("attUnmarked"))$("attUnmarked").textContent=counts.unmarked;
+ document.querySelectorAll("[data-att-student]").forEach(button=>{
+  const selected=attendanceDraft.statuses[button.dataset.attStudent]||"";
+  const own=button.dataset.attStatus;
+  button.classList.toggle("is-present",selected==="P"&&own==="P");
+  button.classList.toggle("is-absent",selected==="A"&&own==="A");
+  button.setAttribute("aria-pressed",String(selected===own));
+ });
+ if($("attendanceSaveHint")){
+  $("attendanceSaveHint").textContent=counts.unmarked===0
+   ?"All "+counts.total+" students are marked. Confirm lecture and upload the required photo."
+   :"Choose a lecture, mark all "+counts.total+" students Present or Absent ("+counts.unmarked+" still unmarked), and upload a class photo.";
+ }
+}
+function filterAttendanceRows(){
+ if(page!=="Attendance")return;
+ const visible=filterRosterBySearch(attendanceRosterForCurrentSection(),$("search").value);
+ const ids=new Set(visible.map(s=>s.id));
+ document.querySelectorAll("[data-att-row-id]").forEach(row=>{row.style.display=ids.has(row.dataset.attRowId)?"":"none";});
+ const hint=$("attendanceCountHint");
+ if(hint)hint.textContent="Showing "+visible.length+" of "+attendanceRosterForCurrentSection().length+" students · Mark P or A for every student.";
+ const body=$("attendanceRosterBody");
+ const empty=document.querySelector("[data-att-empty]");
+ if(visible.length===0){
+  if(body&&!empty)body.insertAdjacentHTML("beforeend",'<tr data-att-empty="1"><td colspan="4" class="empty">No students found for this search.</td></tr>');
+ }else if(empty)empty.remove();
+}
+function resetAttendanceSheet(changes){
+ attendanceDraft=Object.assign({},attendanceDraft,changes||{});
+ attendanceDraft.statuses={};attendanceDraft.photoData="";attendanceDraft.photoName="";
+ render();
+}
+function bindAttendanceUI(){
+ const section=$("attendanceSection"),lecture=$("attendanceLecture"),date=$("attendanceDate");
+ if(section)section.onchange=()=>resetAttendanceSheet({section:section.value});
+ if(lecture)lecture.onchange=()=>resetAttendanceSheet({lecture:lecture.value});
+ if(date)date.onchange=()=>resetAttendanceSheet({date:date.value});
+ document.querySelectorAll("[data-att-student]").forEach(button=>button.onclick=()=>{
+  attendanceDraft.statuses[button.dataset.attStudent]=button.dataset.attStatus;
+  paintAttendanceState();
+ });
+ const markAll=$("markAllPresent");
+ if(markAll)markAll.onclick=()=>{attendanceRosterForCurrentSection().forEach(s=>attendanceDraft.statuses[s.id]="P");paintAttendanceState();};
+ const clear=$("clearAttendanceMarks");
+ if(clear)clear.onclick=()=>{attendanceDraft.statuses={};paintAttendanceState();};
+ const photoInput=$("attendancePhoto");
+ if(photoInput)photoInput.onchange=async()=>{
+  const file=photoInput.files&&photoInput.files[0];if(!file)return;
+  if(!file.type.startsWith("image/")){alert("Please choose an image file for the class photo.");photoInput.value="";return;}
+  if(file.size>15*1024*1024){alert("Please choose a photo smaller than 15 MB.");photoInput.value="";return;}
+  try{
+   const compressed=await compressAttendancePhoto(file);
+   attendanceDraft.photoData=compressed;attendanceDraft.photoName=file.name;
+   $("attendancePhotoPreview").innerHTML='<div class="photo-preview"><img src="'+compressed+'" alt="Uploaded attendance photo preview"><span>'+escapeHtml(file.name)+'<br>Photo ready to attach</span></div>';
+   paintAttendanceState();
+  }catch(err){console.error(err);attendanceDraft.photoData="";attendanceDraft.photoName="";photoInput.value="";alert("That photo could not be processed. Please choose another image.");}
+ };
+ const save=$("saveAttendance");
+ if(save)save.onclick=saveAttendanceDemo;
+}
+function compressAttendancePhoto(file){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onerror=()=>reject(new Error("Image could not be read"));
+  reader.onload=()=>{
+   const img=new Image();
+   img.onerror=()=>reject(new Error("Invalid image"));
+   img.onload=()=>{
+    const maxSide=900,scale=Math.min(1,maxSide/Math.max(img.width,img.height));
+    const canvas=document.createElement("canvas");
+    canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));
+    const ctx=canvas.getContext("2d");if(!ctx){reject(new Error("Image compression unavailable"));return;}
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    resolve(canvas.toDataURL("image/jpeg",0.62));
+   };
+   img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+ });
+}
+function saveAttendanceDemo(){
+ const counts=attendanceCounts();
+ if(!attendanceDraft.lecture){alert("Please select a lecture before saving attendance.");$("attendanceLecture").focus();return;}
+ if(!attendanceDraft.date){alert("Please select the attendance date.");$("attendanceDate").focus();return;}
+ if(!attendanceDraft.photoData){alert("Class photo upload is mandatory. Please upload a photo before saving.");$("attendancePhoto").focus();return;}
+ if(counts.total===0){alert("No students are available in this section.");return;}
+ if(counts.unmarked>0){alert("Please select P · Present or A · Absent for every student. "+counts.unmarked+" student(s) are not marked.");return;}
+ const session={id:"att-"+Date.now(),date:attendanceDraft.date,section:attendanceDraft.section,teacher:SECTION_TEACHERS[attendanceDraft.section],lecture:attendanceDraft.lecture,total:counts.total,present:counts.present,absent:counts.absent,photoName:attendanceDraft.photoName,photoData:attendanceDraft.photoData,students:counts.roster.map(s=>({id:s.id,name:s.name,admissionNo:s.admissionNo,status:attendanceDraft.statuses[s.id]})),savedAt:new Date().toISOString()};
+ try{
+  const sessions=loadAttendanceSessions();
+  sessions.unshift(session);
+  localStorage.setItem(ATTENDANCE_STORE_KEY,JSON.stringify(sessions.slice(0,10)));
+  attendanceDraft.statuses={};attendanceDraft.lecture="";attendanceDraft.photoData="";attendanceDraft.photoName="";
+  render();
+  alert("Attendance demo saved successfully for Section "+session.section+". "+session.present+" Present, "+session.absent+" Absent. Photo attached. This record is stored only in this browser.");
+ }catch(err){
+  console.error(err);
+  alert("The browser could not store this attendance record. Try uploading a smaller photo or clearing old demo data.");
+ }
+}
+function listPage(){let arr=records[page]||[],q=$('search').value.toLowerCase();arr=arr.filter(x=>(x.name+" "+x.detail+" "+x.status).toLowerCase().includes(q));let addable=!['Reports','Settings'].includes(page);let rows=arr.map((x,i)=>'<tr><td><b>'+escapeHtml(x.name)+'</b></td><td>'+escapeHtml(x.detail)+'</td><td><span class="badge">'+escapeHtml(x.status)+'</span></td></tr>').join('');return '<section class="glass panel"><div class="pagehead"><div><h2 style="margin:0">'+escapeHtml(page)+'</h2><small style="color:var(--muted)">Sample data · '+arr.length+' records shown</small></div>'+(addable?'<button class="btn" data-add="'+escapeHtml(page)+'">＋ Add '+escapeHtml(page==='Students'?'student':page==='Teachers'?'teacher':'record')+'</button>':'')+'</div><div class="tablewrap"><table class="data"><thead><tr><th>Name / Title</th><th>Details</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table>'+(arr.length?'':'<div class="empty">No matching demo records. Try another search or add a record.</div>')+'</div></section>'}
+function render(){document.querySelectorAll('.nav[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$('pagetitle').textContent=page==='Overview'?'School overview':page;$('content').innerHTML=page==='Overview'?overview():page==='Students'?studentPage():page==='Attendance'?attendancePage():listPage();document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{page=b.dataset.page;$('search').value='';render()});document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>openForm(b.dataset.add));document.querySelectorAll('[data-student-edit]').forEach(b=>b.onclick=()=>openStudentForm(b.dataset.studentEdit));document.querySelectorAll('[data-student-delete]').forEach(b=>b.onclick=()=>{const s=records.Students.find(x=>x.id===b.dataset.studentDelete);if(!s)return;if(confirm('Delete '+s.name+' from this browser demo? This cannot be undone.')){records.Students=records.Students.filter(x=>x.id!==s.id);saveRecords();render();}});if(page==='Attendance'){bindAttendanceUI();paintAttendanceState();}let ai=$('askai');if(ai)ai.onclick=()=>alert('AI Assistant demo: Keep student records organized, review attendance daily, and communicate upcoming assessments to parents. Real AI requires configuring an API on the hosted Laravel backend.')}
 function nextAdmissionNumber(){let max=0;(records.Students||[]).forEach(s=>{const m=String(s.admissionNo||"").match(/(\d+)$/);if(m)max=Math.max(max,Number(m[1]));});return "LAV-2026-"+String(max+1).padStart(3,"0");}
 function studentField(name,label,type,value,required){return '<div class="field"><label for="student-'+name+'">'+label+'</label><input id="student-'+name+'" name="'+name+'" type="'+type+'" value="'+escapeHtml(value||"")+'" '+(required?'required':'')+' autocomplete="off"></div>';}
 function openStudentForm(studentId){
@@ -100,6 +239,6 @@ function openStudentForm(studentId){
  $('overlay').style.display='grid';
 }
 function openForm(kind){if(kind==="Students"){openStudentForm();return;}$('modalTitle').textContent='Add '+kind+' demo record';let fields=kind==='Attendance'?[['name','Class / section','text'],['detail','Attendance summary','text']]:kind==='Fees'?[['name','Student name','text'],['detail','Fee description and amount','text']]:[['name',kind==='Teachers'?'Teacher full name':'Record name','text'],['detail','Details','text']];$('formfields').innerHTML=fields.map(f=>'<div class="field"><label>'+f[1]+'</label><input required name="'+f[0]+'" type="'+f[2]+'" placeholder="'+f[1]+'"></div>').join('')+'<div class="field"><label>Status</label><select name="status"><option>Active</option><option>Pending</option><option>Paid</option><option>Recorded</option><option>Scheduled</option></select></div>'; $('recordForm').dataset.kind=kind;$('recordForm').dataset.editId='';$('overlay').style.display='grid'}
-function closeForm(){$('overlay').style.display='none'}$('close').onclick=closeForm;$('cancel').onclick=closeForm;$('overlay').onclick=e=>{if(e.target===$('overlay'))closeForm()};$('recordForm').onsubmit=e=>{e.preventDefault();let kind=e.target.dataset.kind,fd=new FormData(e.target);if(kind==='Students'){let editId=e.target.dataset.editId||'',admissionNo=String(fd.get('admissionNo')||'').trim();if(records.Students.some(s=>String(s.admissionNo||'').toLowerCase()===admissionNo.toLowerCase()&&s.id!==editId)){alert('That admission number is already in use. Please enter a unique admission number.');return;}const student={id:editId||'stu-'+Date.now().toString(36),admissionNo,name:String(fd.get('name')||'').trim(),grade:String(fd.get('grade')||'').trim(),section:String(fd.get('section')||'').trim(),parent:String(fd.get('parent')||'').trim(),phone:String(fd.get('phone')||'').trim(),email:String(fd.get('email')||'').trim(),status:String(fd.get('status')||'Active'),detail:String(fd.get('grade')||'').trim()+' · '+String(fd.get('section')||'').trim()};if(editId){const index=records.Students.findIndex(s=>s.id===editId);if(index>=0)records.Students[index]=student;}else records.Students.push(student);saveRecords();closeForm();page='Students';$('search').value='';render();alert(editId?'Student details updated in this browser demo.':'Student added to this browser demo.');return;}if(!records[kind])records[kind]=[];records[kind].push({name:fd.get('name'),detail:fd.get('detail'),status:fd.get('status')});saveRecords();closeForm();page=kind;$('search').value='';render();alert('Demo record saved in this browser. It is not sent to a school database.')};$('search').oninput=()=>{if(page!=='Overview')render()};$('theme').onclick=()=>document.body.classList.toggle('dark');render();
+function closeForm(){$('overlay').style.display='none'}$('close').onclick=closeForm;$('cancel').onclick=closeForm;$('overlay').onclick=e=>{if(e.target===$('overlay'))closeForm()};$('recordForm').onsubmit=e=>{e.preventDefault();let kind=e.target.dataset.kind,fd=new FormData(e.target);if(kind==='Students'){let editId=e.target.dataset.editId||'',admissionNo=String(fd.get('admissionNo')||'').trim();if(records.Students.some(s=>String(s.admissionNo||'').toLowerCase()===admissionNo.toLowerCase()&&s.id!==editId)){alert('That admission number is already in use. Please enter a unique admission number.');return;}const student={id:editId||'stu-'+Date.now().toString(36),admissionNo,name:String(fd.get('name')||'').trim(),grade:String(fd.get('grade')||'').trim(),section:String(fd.get('section')||'').trim(),parent:String(fd.get('parent')||'').trim(),phone:String(fd.get('phone')||'').trim(),email:String(fd.get('email')||'').trim(),status:String(fd.get('status')||'Active'),detail:String(fd.get('grade')||'').trim()+' · '+String(fd.get('section')||'').trim()};if(editId){const index=records.Students.findIndex(s=>s.id===editId);if(index>=0)records.Students[index]=student;}else records.Students.push(student);saveRecords();closeForm();page='Students';$('search').value='';render();alert(editId?'Student details updated in this browser demo.':'Student added to this browser demo.');return;}if(!records[kind])records[kind]=[];records[kind].push({name:fd.get('name'),detail:fd.get('detail'),status:fd.get('status')});saveRecords();closeForm();page=kind;$('search').value='';render();alert('Demo record saved in this browser. It is not sent to a school database.')};$('search').oninput=()=>{if(page==='Attendance'){filterAttendanceRows()}else if(page!=='Overview')render()};$('theme').onclick=()=>document.body.classList.toggle('dark');render();
 </script></body></html>
 <!-- Pages deployment retry: updated 2026-10-23 -->
