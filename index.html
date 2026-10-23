@@ -261,6 +261,13 @@ function loadFeeReceipts(){
  try{const value=JSON.parse(localStorage.getItem(FEE_RECEIPTS_KEY)||"[]");return Array.isArray(value)?value:[];}
  catch(err){console.warn("Unable to read demo fee receipts",err);return [];}
 }
+function lastFeeReceiptForStudent(student){
+ if(!student)return null;
+ const matches=loadFeeReceipts().filter(r=>(r.studentId&&String(r.studentId)===String(student.id))||(!r.studentId&&r.admissionNo&&String(r.admissionNo)===String(student.admissionNo)));
+ return matches.sort((a,b)=>String(b.createdAt||b.paymentDate||"").localeCompare(String(a.createdAt||a.paymentDate||"")))[0]||null;
+}
+function carriedFeeBalance(student){const last=lastFeeReceiptForStudent(student);return last?Math.max(0,Number(last.remainingBalance)||0):0;}
+function syncFeeBalance(){feeDraft.previousBalance=String(carriedFeeBalance(feeStudentById(feeDraft.studentId)));}
 function feeStudentById(id){return (records.Students||[]).find(s=>String(s.id)===String(id));}
 function feeAcademicYear(dateValue){
  const d=new Date((dateValue||todayLocal())+"T12:00:00");
@@ -288,6 +295,7 @@ function feePage(){
  const students=(records.Students||[]).filter(s=>s.status!=="Inactive");
  const selected=feeStudentById(feeDraft.studentId)||students[0]||null;
  if(selected&&selected.id!==feeDraft.studentId)feeDraft.studentId=selected.id;
+ syncFeeBalance();
  const total=feeTotals(),receipts=loadFeeReceipts().filter(r=>{
   const q=String($("search")?$("search").value:"").trim().toLowerCase();
   return !q||[r.receiptNo,r.studentName,r.admissionNo,r.grade,r.section,r.feeType,r.paymentMode].join(" ").toLowerCase().includes(q);
@@ -308,7 +316,7 @@ function feePage(){
  '<div class="fee-field fee-span-2"><label>Fee categories — optional</label><p class="fee-help">Tick any fee and enter its amount. At least one fee is required for a receipt.</p></div>'+feeOptions+
  '<div class="fee-field"><label for="feeCustomName">Custom fee name (optional)</label><input id="feeCustomName" maxlength="70" placeholder="e.g. Annual Function Fee" value="'+escapeHtml(feeDraft.customName)+'"></div><div class="fee-field"><label for="feeCustomAmount">Custom fee amount (₹)</label><input id="feeCustomAmount" type="number" min="0" step="0.01" placeholder="Enter amount" value="'+escapeHtml(feeDraft.customAmount)+'"></div>'+
  '<div class="fee-field"><label>Total selected fees (₹)</label><input id="feeTotal" readonly value="'+moneyINR(total.total)+'"></div>'+
- '<div class="fee-field"><label for="feeTotal">Total fee (₹) *</label><input id="feeTotal" type="number" min="0" step="0.01" required value="'+escapeHtml(feeDraft.totalFee)+'"></div><div class="fee-field"><label for="feePrevious">Previous balance (₹)</label><input id="feePrevious" type="number" min="0" step="0.01" required value="'+escapeHtml(feeDraft.previousBalance)+'"></div>'+
+ '<div class="fee-field"><label for="feeTotal">Total fee (₹) *</label><input id="feeTotal" type="number" min="0" step="0.01" required value="'+escapeHtml(feeDraft.totalFee)+'"></div><div class="fee-field"><label for="feePrevious">Previous balance (₹) · Auto carried forward</label><input id="feePrevious" type="number" min="0" step="0.01" readonly value="'+escapeHtml(feeDraft.previousBalance)+'"></div>'+
  '<div class="fee-field"><label for="feePaid">Amount paid now (₹) *</label><input id="feePaid" type="number" min="0.01" step="0.01" required value="'+escapeHtml(feeDraft.amountPaid)+'"></div><div class="fee-field"><label for="feeDate">Payment date *</label><input id="feeDate" type="date" required value="'+escapeHtml(feeDraft.paymentDate)+'"></div>'+
  '<div class="fee-field"><label for="feeMode">Payment mode *</label><select id="feeMode" required>'+modeOptions+'</select></div><div class="fee-field"><label for="feeReference">Transaction / cheque reference</label><input id="feeReference" value="'+escapeHtml(feeDraft.transactionId)+'" placeholder="Optional reference"></div>'+
  '<div class="fee-field fee-span-2"><label for="feeBankApp">Bank / UPI app (optional)</label><input id="feeBankApp" value="'+escapeHtml(feeDraft.bankApp)+'" placeholder="e.g. Google Pay, bank name"></div></div>'+
@@ -337,8 +345,8 @@ function resetFeeDraftToDemo(){
  render();
 }
 function bindFeesUI(){
- const bindings={feeStudent:"studentId",feeCustomName:"customName",feeCustomAmount:"customAmount",feePrevious:"previousBalance",feePaid:"amountPaid",feeDate:"paymentDate",feeMode:"paymentMode",feeReference:"transactionId",feeBankApp:"bankApp"};
- Object.entries(bindings).forEach(([id,key])=>{const el=$(id);if(!el)return;el.onchange=()=>{feeDraft[key]=el.value;if(id==="feeStudent"){const s=feeStudentById(el.value);if($("feeAdmission"))$("feeAdmission").value=s?s.admissionNo||"—":"—";if($("feeClass"))$("feeClass").value=s?(s.grade||"—")+" · "+(s.section||"—"):"—";}updateFeeSummary();};if(el.tagName==="INPUT"&&el.type!=="date")el.oninput=()=>{feeDraft[key]=el.value;updateFeeSummary();};});
+ const bindings={feeStudent:"studentId",feeCustomName:"customName",feeCustomAmount:"customAmount",feePaid:"amountPaid",feeDate:"paymentDate",feeMode:"paymentMode",feeReference:"transactionId",feeBankApp:"bankApp"};
+ Object.entries(bindings).forEach(([id,key])=>{const el=$(id);if(!el)return;el.onchange=()=>{feeDraft[key]=el.value;if(id==="feeStudent"){syncFeeBalance();if($("feePrevious"))$("feePrevious").value=feeDraft.previousBalance;const s=feeStudentById(el.value);if($("feeAdmission"))$("feeAdmission").value=s?s.admissionNo||"—":"—";if($("feeClass"))$("feeClass").value=s?(s.grade||"—")+" · "+(s.section||"—"):"—";}updateFeeSummary();};if(el.tagName==="INPUT"&&el.type!=="date")el.oninput=()=>{feeDraft[key]=el.value;updateFeeSummary();};});
  document.querySelectorAll("[data-fee-check]").forEach(box=>box.onchange=()=>{const field=Array.from(document.querySelectorAll("[data-fee-amount]")).find(x=>x.dataset.feeAmount===box.dataset.feeCheck);if(!field)return;field.disabled=!box.checked;if(!box.checked){field.value="";feeDraft.fees[box.dataset.feeCheck]="";}else field.focus();updateFeeSummary();});
  document.querySelectorAll("[data-fee-amount]").forEach(field=>field.oninput=()=>{feeDraft.fees[field.dataset.feeAmount]=field.value;updateFeeSummary();});
  const generate=$("generateFeeReceipt");if(generate)generate.onclick=saveFeeReceiptDemo;
@@ -346,6 +354,7 @@ function bindFeesUI(){
  document.querySelectorAll("[data-fee-print]").forEach(btn=>btn.onclick=()=>{const rec=loadFeeReceipts().find(r=>String(r.id)===String(btn.dataset.feePrint));if(rec)printFeeReceipt(rec);});
 }
 function saveFeeReceiptDemo(){
+ syncFeeBalance();
  const student=feeStudentById(feeDraft.studentId),total=feeTotals();
  if(!student){alert("Please select a student first.");$("feeStudent").focus();return;}
  if(selectedFeeItems().length===0){alert("Select at least one fee and enter an amount.");return;}
@@ -357,9 +366,9 @@ function saveFeeReceiptDemo(){
  if(total.paid<=0){alert("Enter an amount paid greater than zero.");$("feePaid").focus();return;}
  if(total.overpaid>0.0001){alert("Amount paid is greater than the total due. Please correct the amount.");$("feePaid").focus();return;}
  const receipts=loadFeeReceipts();
- const receipt={id:"fee-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),receiptNo:nextFeeReceiptNumber(feeDraft.paymentDate),schoolName:"NXT GEN ENGLISH SCHOOL",schoolAddress:"Dream City Nagar, Appawadi, Pune, Maharashtra",studentName:student.name,admissionNo:student.admissionNo||"—",grade:student.grade||"—",section:student.section||"—",feeType:selectedFeeItems().map(x=>x.name).join(", "),feeItems:selectedFeeItems(),totalFee:total.total,previousBalance:total.previous,amountPaid:total.paid,remainingBalance:total.balance,paymentMode:feeDraft.paymentMode,paymentDate:feeDraft.paymentDate,transactionId:feeDraft.transactionId.trim(),bankApp:feeDraft.bankApp.trim(),principalSignature:"",accountantSignature:"",schoolStamp:"NXT GEN ENGLISH SCHOOL",demo:true,createdAt:new Date().toISOString()};
+ const receipt={id:"fee-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),receiptNo:nextFeeReceiptNumber(feeDraft.paymentDate),schoolName:"NXT GEN ENGLISH SCHOOL",schoolAddress:"Dream City Nagar, Appawadi, Pune, Maharashtra",studentId:student.id,studentName:student.name,admissionNo:student.admissionNo||"—",grade:student.grade||"—",section:student.section||"—",feeType:selectedFeeItems().map(x=>x.name).join(", "),feeItems:selectedFeeItems(),totalFee:total.total,previousBalance:total.previous,amountPaid:total.paid,remainingBalance:total.balance,paymentMode:feeDraft.paymentMode,paymentDate:feeDraft.paymentDate,transactionId:feeDraft.transactionId.trim(),bankApp:feeDraft.bankApp.trim(),principalSignature:"",accountantSignature:"",schoolStamp:"NXT GEN ENGLISH SCHOOL",demo:true,createdAt:new Date().toISOString()};
  receipts.unshift(receipt);
- try{localStorage.setItem(FEE_RECEIPTS_KEY,JSON.stringify(receipts));feeLastReceipt=receipt;render();}
+ try{localStorage.setItem(FEE_RECEIPTS_KEY,JSON.stringify(receipts));feeLastReceipt=receipt;syncFeeBalance();render();}
  catch(err){console.error(err);alert("The browser could not save this receipt. Clear some browser demo storage and try again.");return;}
  if(confirm("Demo receipt "+receipt.receiptNo+" saved. Open Print / Save as PDF now?"))printFeeReceipt(receipt);
 }
