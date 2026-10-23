@@ -431,29 +431,63 @@ function certSaved(){try{return JSON.parse(localStorage.getItem(CERT_KEY)||"[]")
 function certEsc(s){return escapeHtml(String(s==null?"":s))}
 function certData(){const s=feeStudentById(certDraft.studentId)||{};return {studentId:certDraft.studentId,name:s.name||"Student Name",grade:s.grade||"—",section:s.section||"—",competition:certDraft.competition||"Competition Name",date:certDraft.date||todayLocal(),organiser:certDraft.organiser||"Event Organiser",principal:certDraft.principal||"Principal",achievement:certDraft.achievement||"Participation",template:certDraft.template}}
 
+
+function certArt(t){
+ const defs='<defs><linearGradient id="certGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff8d6"/><stop offset=".18" stop-color="#ba812c"/><stop offset=".42" stop-color="#ffdf83"/><stop offset=".67" stop-color="#c38b36"/><stop offset="1" stop-color="#f6d481"/></linearGradient><linearGradient id="certNavy" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#07172f"/><stop offset=".46" stop-color="#183a64"/><stop offset="1" stop-color="#061b39"/></linearGradient><linearGradient id="certMaroon" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="#3a0912"/><stop offset=".53" stop-color="#8d2031"/><stop offset="1" stop-color="#450812"/></linearGradient><linearGradient id="certTeal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#06494a"/><stop offset=".55" stop-color="#0e6969"/><stop offset="1" stop-color="#04373e"/></linearGradient><pattern id="certLines" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M0 12L12 0M-4 4L4 -4" stroke="#bd8c45" opacity=".14" stroke-width=".7"/></pattern><pattern id="certDots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="8" cy="8" r="2" fill="#c88758" opacity=".85"/></pattern></defs>';
+ let shapes="";
+ if(String(t)==="1"){
+ shapes='<rect width="1000" height="700" fill="#fffefa"/><rect x="6" y="6" width="988" height="688" fill="none" stroke="url(#certGold)" stroke-width="9"/><rect x="19" y="19" width="962" height="662" fill="none" stroke="#c7a25d" stroke-width="2"/><rect x="26" y="26" width="948" height="648" fill="url(#certLines)" opacity=".22"/>'
+ +'<path d="M0 0H347 C200 56 101 151 0 433Z" fill="url(#certNavy)"/><path d="M0 0H286 C176 55 96 135 0 332V283C70 105 143 45 240 0Z" fill="url(#certGold)"/><path d="M0 58 C160 10 232 11 320 14 C203 62 130 162 50 324L0 413Z" fill="#fff7e7"/><path d="M0 111C106 74 165 42 250 17" stroke="#fff4be" stroke-width="9" fill="none" opacity=".9"/>'
+ +'<path d="M0 700H252 C140 607 70 501 0 340Z" fill="url(#certNavy)"/><path d="M0 700H345 C193 616 119 543 38 396" fill="none" stroke="url(#certGold)" stroke-width="21"/><path d="M0 700H190 C108 649 61 598 0 520Z" fill="url(#certGold)"/>'
+ +'<path d="M1000 0H714 C851 86 912 170 1000 321Z" fill="url(#certNavy)"/><path d="M1000 0H775C873 78 940 176 1000 263" fill="none" stroke="url(#certGold)" stroke-width="23"/><path d="M1000 700H757C874 611 927 525 1000 406Z" fill="url(#certGold)"/><path d="M1000 700H874C940 616 971 560 1000 504Z" fill="url(#certNavy)"/><path d="M740 684C863 606 926 537 982 427" stroke="#fce4a4" stroke-width="7" fill="none"/>';
+ } else if(String(t)==="2"){
+ shapes='<rect width="1000" height="700" fill="#fffaf0"/><rect width="1000" height="700" fill="url(#certLines)" opacity=".27"/><rect x="8" y="8" width="984" height="684" fill="none" stroke="url(#certGold)" stroke-width="6"/><rect x="20" y="20" width="960" height="660" fill="none" stroke="#a97836" stroke-width="1.7"/><rect x="30" y="30" width="940" height="640" fill="none" stroke="#e9d6ab" stroke-width="1"/>'
+ +'<path d="M0 0H274L0 251Z" fill="url(#certGold)"/><path d="M0 0H239L0 212Z" fill="url(#certNavy)"/><path d="M0 0H147L0 123Z" fill="url(#certGold)"/><path d="M0 0H128L0 104Z" fill="#ab7935"/><path d="M55 0L0 55" stroke="#fff5ca" stroke-width="12"/>'
+ +'<path d="M1000 700H732L1000 440Z" fill="url(#certGold)"/><path d="M1000 700H775L1000 481Z" fill="url(#certNavy)"/><path d="M1000 700H902L1000 602Z" fill="url(#certGold)"/><path d="M1000 647L947 700" stroke="#f9dfa0" stroke-width="11"/>'
+ +'<path d="M857 291q44-27 87 0v96q-43-27-87 0-43-27-85 0v-96q42-27 85 0Zm0 0v96" stroke="#dab773" stroke-width="3" fill="none" opacity=".19"/><path d="M70 134C300 37 620 42 881 100" stroke="#e6c68a" stroke-width="1" opacity=".4" fill="none"/>';
+ } else if(String(t)==="3"){
+ shapes='<rect width="1000" height="700" fill="#fffaf0"/><rect width="1000" height="700" fill="url(#certLines)" opacity=".31"/>'
+ +'<path d="M0 0H1000V145Q730 80 500 75Q255 75 0 150Z" fill="url(#certMaroon)"/><path d="M0 146Q250 78 500 79Q750 77 1000 148" fill="none" stroke="url(#certGold)" stroke-width="12"/><path d="M0 163Q255 88 500 91Q742 87 1000 162" fill="none" stroke="#b88649" stroke-width="2"/><path d="M0 0V33H1000V0" fill="url(#certLines)" opacity=".4"/>'
+ +'<path d="M0 700H1000V560Q740 630 500 627Q248 627 0 557Z" fill="url(#certMaroon)"/><path d="M0 551Q255 624 500 618Q752 618 1000 553" fill="none" stroke="url(#certGold)" stroke-width="13"/><path d="M0 539Q253 608 500 607Q748 610 1000 539" fill="none" stroke="#a77639" stroke-width="2"/><path d="M0 16H1000M0 684H1000" stroke="#e7b463" stroke-width="2" opacity=".6"/>'
+ +'<g stroke="#bc8551" opacity=".22" fill="none"><path d="M25 90c60-45 105-43 158-20M815 80c54-34 110-38 165-7M20 615c60 45 110 37 164 14M815 629c70-32 118-21 166 5"/></g>'
+ +'<rect x="7" y="7" width="986" height="686" stroke="#d7a659" stroke-width="3" fill="none"/>';
+ } else {
+ shapes='<rect width="1000" height="700" fill="#fffdf8"/><rect width="1000" height="700" fill="url(#certLines)" opacity=".24"/><rect x="9" y="9" width="982" height="682" fill="none" stroke="#bb8559" stroke-width="6"/><rect x="23" y="23" width="954" height="654" fill="none" stroke="#e5b28a" stroke-width="2"/>'
+ +'<path d="M0 0H312L0 278Z" fill="url(#certTeal)"/><path d="M0 0H349L0 317" stroke="#d58b56" fill="none" stroke-width="15"/><path d="M0 0H398L0 362" stroke="#ebc0a0" fill="none" stroke-width="3"/><path d="M0 0H72L0 60Z" fill="#0a393c"/>'
+ +'<path d="M1000 700H700L1000 426Z" fill="url(#certTeal)"/><path d="M1000 700H669L1000 397" stroke="#c97f4e" fill="none" stroke-width="14"/><path d="M1000 700H633L1000 362" stroke="#e4ba9b" fill="none" stroke-width="3"/>'
+ +'<rect x="38" y="23" width="103" height="92" fill="url(#certDots)" opacity=".9"/><rect x="857" y="560" width="101" height="100" fill="url(#certDots)" opacity=".93"/><rect x="932" y="115" width="35" height="110" fill="url(#certDots)" opacity=".9"/><rect x="35" y="538" width="33" height="110" fill="url(#certDots)" opacity=".75"/>'
+ +'<path d="M876 188l102-92v73l-102 90Z" fill="#f0dfcf" opacity=".65"/><path d="M17 453V683M988 25v205" stroke="#e5ad82" stroke-width="2"/>';
+ }
+ return '<svg class="cert-artwork" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">'+defs+shapes+'</svg>';
+}
+function certCrest(){
+ const leaves=Array.from({length:7},(_,i)=>'<ellipse cx="'+(23-i*2)+'" cy="'+(28+i*8)+'" rx="6" ry="12" transform="rotate('+(i*11-37)+' '+(23-i*2)+' '+(28+i*8)+')" fill="#c69a48"/>').join("");
+ return '<svg class="cert-logo" viewBox="0 0 120 112" aria-hidden="true"><path d="M60 9l-8-7-6 11-11-6 4 17h42l4-17-11 6-6-11z" fill="#c29a4e" stroke="#6c502c" stroke-width="2"/><path d="M37 26H83v7H37z" fill="#e2b95d"/>'
+ +'<g>'+leaves+'</g><g transform="translate(120 0) scale(-1 1)">'+leaves+'</g>'
+ +'<path d="M60 24 92 34v42c0 13-18 23-32 31-14-8-32-18-32-31V34z" fill="#0b294d" stroke="#d4a95a" stroke-width="5"/><path d="M60 57c-11-9-20-10-26-7v27c10-2 18 0 26 6 8-6 16-8 26-6V50c-6-3-15-2-26 7zM60 57v26" fill="none" stroke="#fff6dc" stroke-width="3"/><path d="M35 89Q60 105 85 89" fill="none" stroke="#d2a254" stroke-width="3"/></svg>';
+}
 function certMarkup(d){
+ const t=String(["1","2","3","4"].includes(String(d.template))?d.template:"1");
  const date=d.date?new Date(d.date+"T12:00:00").toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"}):"—";
  const achievement=CERT_ACHIEVEMENTS.includes(d.achievement)?d.achievement:"Participation";
  const winner=achievement!=="Participation";
- const heading=winner?"CERTIFICATE OF ACHIEVEMENT":"CERTIFICATE OF PARTICIPATION";
- const schoolLogo='<svg class="cert-logo" viewBox="0 0 100 100" aria-hidden="true"><path class="logo-shield" d="M50 9 78 20v33c0 19-14 30-28 38-14-8-28-19-28-38V20z"/><path class="logo-book" d="M50 36c-10-7-18-7-24-5v26c9-2 17 0 24 5 7-5 15-7 24-5V31c-6-2-14-2-24 5zm0 0v26"/><path class="logo-crown" d="M36 17 42 9l8 5 8-5 6 8" /></svg>';
- const trophy=winner?'<span class="cert-medal-top">✦</span> '+certEsc(achievement)+' <span class="cert-medal-top">✦</span>':'HONOURED PARTICIPANT';
- const statement=winner?'for securing <strong>'+certEsc(achievement)+'</strong> in':'for enthusiastic participation in';
- return '<article class="cert-sheet" data-template="'+certEsc(d.template||"1")+'" data-achievement="'+certEsc(achievement)+'">'
-   +'<div class="cert-outer-frame"><div class="cert-decor cert-decor-tl"></div><div class="cert-decor cert-decor-tr"></div><div class="cert-decor cert-decor-bl"></div><div class="cert-decor cert-decor-br"></div></div>'
-   +'<div class="cert-inner">'
-   +'<div class="cert-brand">'+schoolLogo+'<div class="cert-school">NXT GEN ENGLISH SCHOOL</div><div class="cert-motto">LEARN &nbsp; • &nbsp; GROW &nbsp; • &nbsp; ACHIEVE</div><div class="cert-address">Dream City Nagar, Appawadi, Pune, Maharashtra</div></div>'
-   +'<div class="cert-head"><div class="cert-eyebrow">IN RECOGNITION OF EXCELLENCE</div><h2 class="cert-title">'+heading+'</h2><div class="cert-rule"><span>✦</span></div></div>'
-   +'<div class="cert-intro">This is proudly presented to</div>'
-   +'<div class="cert-name">'+certEsc(d.name)+'</div>'
-   +'<div class="cert-class">CLASS '+certEsc(d.grade)+' &nbsp; · &nbsp; DIVISION '+certEsc(d.section)+'</div>'
-   +'<div class="cert-description">'+statement+'</div>'
-   +'<div class="cert-competition">'+certEsc(d.competition)+'</div>'
-   +'<div class="cert-date">Held on '+certEsc(date)+'</div>'
-   +'<div class="cert-medal">'+trophy+'</div>'
-   +'<div class="cert-footer"><div class="cert-sign"><div class="cert-sign-name">'+certEsc(d.organiser)+'</div><div class="cert-sign-line"></div><div class="cert-sign-label">Event Organiser</div><div class="cert-sign-demo">Demo signature</div></div><div class="cert-seal"><span>✦</span><small>NXT GEN<br>SCHOOL</small><span>✦</span></div><div class="cert-sign"><div class="cert-sign-name">'+certEsc(d.principal)+'</div><div class="cert-sign-line"></div><div class="cert-sign-label">Principal</div><div class="cert-sign-demo">Demo signature</div></div></div>'
-   +'<div class="cert-demo">SAMPLE CERTIFICATE • SIGNATURES AND SEAL ARE DEMO PLACEHOLDERS</div>'
-   +'</div></article>';
+ const headings={"1":winner?"Certificate of Achievement":"Certificate of Participation","2":winner?"CERTIFICATE OF MERIT":"CERTIFICATE OF PARTICIPATION","3":winner?"CERTIFICATE OF MERIT":"CERTIFICATE OF PARTICIPATION","4":winner?"CERTIFICATE OF RECOGNITION":"CERTIFICATE OF PARTICIPATION"};
+ const heading=headings[t], statement=winner?'has secured <b>'+certEsc(achievement)+'</b> in the':'has participated in the';
+ const award=winner?certEsc(achievement):"PARTICIPATION";
+ const badge='<div class="cert-ribbon-badge"><div class="cert-badge-inner"><svg viewBox="0 0 90 78" aria-hidden="true"><path d="M20 27h50l-6 31-19 14-19-14zM20 30H8q-2 25 18 22m44-22h12q2 25-18 22" fill="none" stroke="#f8d98e" stroke-width="5"/><path d="M35 74h20" stroke="#f8d98e" stroke-width="6"/></svg><strong>'+award+'</strong></div></div>';
+ const side=t==="4"?'<div class="cert-aside cert-aside-left">EXPLORE<br> EXPRESS<br> EXCEL</div><div class="cert-aside cert-aside-right">ART<br> CREATES<br> A BRIGHTER<br> TOMORROW</div>':"";
+ const under=t==="3"?'<div class="cert-wreath cert-wreath-left">❧</div><div class="cert-wreath cert-wreath-right">❧</div>':"";
+ return '<article class="cert-sheet cert-style-'+t+'" data-template="'+t+'" data-achievement="'+certEsc(achievement)+'">'+certArt(t)
+ +'<div class="cert-inner"><div class="cert-brand">'+certCrest()+'<div class="cert-school">NXT GEN ENGLISH SCHOOL</div><div class="cert-motto">LEARN · GROW · LEAD · SHINE</div></div>'
+ +'<div class="cert-heading"><span class="cert-title">'+certEsc(heading)+'</span><span class="cert-title-flourish">❖</span></div>'
+ +'<p class="cert-intro">This is to certify that</p><div class="cert-name">'+certEsc(d.name)+'</div>'
+ +'<div class="cert-class">Class '+certEsc(d.grade)+' · Division '+certEsc(d.section)+'</div>'
+ +'<div class="cert-statement">'+statement+'</div><div class="cert-competition">'+certEsc(d.competition)+'</div>'
+ +'<div class="cert-date">held on '+certEsc(date)+'</div>'+side+under+(t==="1"?badge:"")
+ +'<div class="cert-footer"><div class="cert-sign"><span class="cert-autograph">'+certEsc(d.organiser)+'</span><div class="cert-sign-rule"></div><b>Event Organiser</b><small>Demo signature</small></div>'
+ +'<div class="cert-seal"><span>NXT GEN<br>ENGLISH SCHOOL</span><b>✦</b></div>'
+ +'<div class="cert-sign"><span class="cert-autograph">'+certEsc(d.principal)+'</span><div class="cert-sign-rule"></div><b>Principal</b><small>Demo signature</small></div></div>'
+ +'<div class="cert-demo">DEMO CERTIFICATE · SIGNATURES AND SEAL ARE PLACEHOLDERS</div></div></article>';
 }
 function certBulkOptions(){const students=records.Students||[];const grades=[...new Set(students.map(s=>String(s.grade||"")).filter(Boolean))].sort();const divisions=[...new Set(students.map(s=>String(s.section||"")).filter(Boolean))].sort();return '<div class="cert-bulk"><h3>Bulk Certificate Generator</h3><p class="cert-hint">Filter by class and division. Select students and assign each position; the main position sets the default.</p><div class="cert-fields"><div><label for="certBulkGrade">Class</label><select id="certBulkGrade"><option value="">All classes</option>'+grades.map(g=>'<option value="'+certEsc(g)+'">'+certEsc(g)+'</option>').join("")+'</select></div><div><label for="certBulkDivision">Division</label><select id="certBulkDivision"><option value="">All divisions</option>'+divisions.map(g=>'<option value="'+certEsc(g)+'">'+certEsc(g)+'</option>').join("")+'</select></div></div><div class="cert-buttons"><button class="btn secondary" type="button" id="certBulkAll">Select all filtered</button><button class="btn secondary" type="button" id="certBulkClear">Clear selection</button></div><div id="certBulkList" style="max-height:220px;overflow:auto;margin-top:12px"></div><p class="cert-hint" id="certBulkCount"></p><button class="btn" type="button" id="certBulkGenerate">Save &amp; Print Selected Certificates</button><p class="cert-hint">Each selected student gets a separate landscape page in one print/PDF job.</p></div>'}
 function certPrintBulk(items){const win=window.open("","_blank");if(!win){alert("Allow pop-ups to print certificates.");return;}const style=document.querySelector("style");const rules=style?style.textContent:"";win.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Bulk Certificates</title><style>'+rules+'@page{size:A4 landscape;margin:10mm}body{margin:0;background:#fff}.cert-sheet{box-sizing:border-box;width:277mm;height:190mm;min-height:0!important;aspect-ratio:auto;margin:0;break-after:page;page-break-after:always;-webkit-print-color-adjust:exact;print-color-adjust:exact}.cert-school{font-size:19px}.cert-motto{font-size:9px}.cert-address{font-size:9px}.cert-title{font-size:29px!important}.cert-eyebrow{font-size:9px}.cert-intro{font-size:13px}.cert-name{font-size:34px!important}.cert-class{font-size:11px}.cert-description{font-size:13px}.cert-competition{font-size:17px}.cert-date{font-size:12px}.cert-medal{font-size:12px}.cert-sign-name{font-size:17px}.cert-sign{font-size:11px}.cert-sign-demo{font-size:8px}.cert-demo{font-size:8px!important}.cert-seal{width:70px;height:70px;font-size:11px}.cert-seal small{font-size:8px}.cert-sheet:last-child{break-after:auto;page-break-after:auto}@media print{.cert-sheet{margin:0;outline:none}}</style></head><body>'+items.map(certMarkup).join("")+'</body></html>');win.document.close();win.focus();setTimeout(()=>win.print(),500)}
