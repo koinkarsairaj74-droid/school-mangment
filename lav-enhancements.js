@@ -82,7 +82,7 @@ function exams(){
  return header("Exams & marks","Create assessments, enter student marks and print individual mark sheets.",button("exams","Create exam")+' '+button("marks","Enter marks"))
   +'<div class="lav-title-row"><h3>Exam schedule</h3><small>'+d.exams.length+' assessments</small></div>'+table(["Exam","Term","Session","Marks entries","Status","Actions"],rows||noRows(6,"No exams configured. Create an exam first."))
   +'<div class="lav-title-row"><h3>Student mark register</h3><small>Grade scale: A+ 75% · A 60% · B 45% · C 35%</small></div>'+table(["Student","Exam","Subject","Marks","Grade","Actions"],markRows||noRows(6,"No marks entered yet."))
-  +'<section class="glass panel lav-print-bar"><b>Print individual marksheet</b><select id="lavMarkStudent" aria-label="Student to print">'+records.Students.map(function(x){return '<option value="'+text(x.id)+'">'+text(x.name)+' · '+text(x.admissionNo)+'</option>';}).join("")+'</select><button class="btn secondary" data-lav-action="print-marks">Print marksheet</button></section>';
+  +'<section class="glass panel lav-print-bar"><b>Print individual marksheet</b><select id="lavMarkExam" aria-label="Choose exam for the marksheet"><option value="">All recorded exams</option>'+d.exams.map(function(x){return '<option value="'+text(x.id)+'">'+text(x.name)+' · '+text(x.year)+'</option>';}).join("")+'</select><select id="lavMarkStudent" aria-label="Student to print">'+records.Students.map(function(x){return '<option value="'+text(x.id)+'">'+text(x.name)+' · '+text(x.admissionNo)+'</option>';}).join("")+'</select><button class="btn secondary" data-lav-action="print-marks">Print marksheet</button></section>';
 }
 function parents(){
  var all=assure("Parents");
@@ -109,7 +109,7 @@ function field(name,label,type,val,required,opts){
  var attr=' id="lav-field-'+name+'" name="'+name+'" '+(required?'required ':'');
  var inner='';
  if(type==="select"){inner='<select'+attr+'>'+opts.map(function(x){var v=Array.isArray(x)?x[0]:x,l=Array.isArray(x)?x[1]:x;return '<option value="'+text(v)+'" '+(String(v)===String(val)?"selected":"")+'>'+text(l)+'</option>';}).join("")+'</select>';}
- else {inner='<input'+attr+' type="'+type+'" value="'+text(val||"")+'" '+(type==="number"?'min="0" step="0.01" ':'')+'autocomplete="off">';}
+ else {inner='<input'+attr+' type="'+type+'" value="'+text(val??"")+'" '+(type==="number"?'min="0" step="0.01" ':'')+'autocomplete="off">';}
  return '<label class="lav-field"><span>'+text(label)+'</span>'+inner+'</label>';
 }
 function optionsClasses(){var keys=new Set(load().classes.map(function(x){return x.name;}));records.Students.forEach(function(x){keys.add(x.grade);});return Array.from(keys).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true});});}
@@ -157,11 +157,14 @@ function validate(kind,data,obj){
   if(load().classes.some(function(c){return c.id!==(obj&&obj.id)&&norm(c.name)===norm(data.name)&&norm(c.section)===norm(data.section);})){alert("This class and division already exist.");return false;}
  }
  if(kind==="timetable"){
+  if(!load().classes.some(c=>c.name===data.grade&&c.section===data.section&&c.status!=="Inactive")){alert("Select an active class section first.");return false;}
   if(data.start>=data.end){alert("The end time must be later than the start time.");return false;}
   var clash=load().timetable.some(function(x){return x.id!==(obj&&obj.id)&&x.day===data.day&&x.grade===data.grade&&x.section===data.section&&data.start<x.end&&x.start<data.end;});
   if(clash){alert("This class already has a period at that time. Choose a different slot.");return false;}
  }
  if(kind==="marks"){
+  if(!records.Students.some(s=>s.id===data.studentId)){alert("Select a valid student.");return false;}
+  if(!load().exams.some(e=>e.id===data.examId)){alert("Select an existing exam.");return false;}
   if(!Number.isFinite(Number(data.max))||Number(data.max)<=0||!Number.isFinite(Number(data.score))||data.score===""||Number(data.score)<0||Number(data.score)>Number(data.max)){alert("Marks must be between 0 and the maximum.");return false;}
   if(load().marks.some(function(x){return x.id!==(obj&&obj.id)&&x.examId===data.examId&&x.studentId===data.studentId&&norm(x.subject)===norm(data.subject);})){alert("Marks already exist for this student, exam and subject. Edit the existing entry.");return false;}
  }
@@ -229,14 +232,17 @@ function restore(file){
  };
  rd.readAsText(file);
 }
-function printMarks(){
- var id=value("lavMarkStudent");var student=records.Students.find(function(x){return x.id===id;});if(!student){alert("Select a student.");return;}
- var d=load(),marks=d.marks.filter(function(x){return x.studentId===id;}),sum=marks.reduce(function(a,x){a[0]+=Number(x.score);a[1]+=Number(x.max);return a;},[0,0]);
+function printMarksFor(studentId,examId){
+ var id=String(studentId||value("lavMarkStudent"));
+ var selectedExam=examId||value("lavMarkExam")||"";
+var student=records.Students.find(function(x){return x.id===id;});if(!student){alert("Select a student.");return;}
+ var d=load(),marks=d.marks.filter(function(x){return x.studentId===id&&(!selectedExam||x.examId===selectedExam);}),sum=marks.reduce(function(a,x){a[0]+=Number(x.score);a[1]+=Number(x.max);return a;},[0,0]);
  if(!marks.length){alert("No exam marks are saved for this student.");return;}
  var rows=marks.map(function(x,i){var e=d.exams.find(function(ex){return ex.id===x.examId;});return "<tr><td>"+(i+1)+"</td><td>"+text(e&&e.name||"—")+"</td><td>"+text(x.subject)+"</td><td>"+text(x.max)+"</td><td>"+text(x.score)+"</td><td>"+gradeFor(x.score,x.max)+"</td></tr>";}).join("");
- var html='<!doctype html><html><head><title>Demo Marksheet · '+text(student.name)+'</title><style>body{font:14px Arial,sans-serif;padding:25px;color:#163151}h1{text-align:center;margin:0}header{text-align:center;border-bottom:2px solid #163151;padding-bottom:18px}h2{text-align:center}table{width:100%;border-collapse:collapse;margin-top:25px}td,th{border:1px solid #cbd5e1;padding:11px;text-align:left}th{background:#eaf0fa}.note{color:#a05a16}.foot{display:flex;justify-content:space-between;margin-top:60px}button{padding:10px;margin-top:20px}@media print{button{display:none}}</style></head><body><header><h1>'+text(d.school.name)+'</h1><p>'+text(d.school.address)+'</p></header><h2>STUDENT RESULT / MARKSHEET — DEMO</h2><p><b>Name:</b> '+text(student.name)+' &nbsp; <b>Admission:</b> '+text(student.admissionNo)+'<br><b>Class:</b> '+text(student.grade)+' · '+text(student.section)+' &nbsp; <b>Year:</b> '+text(d.school.year)+'</p><table><thead><tr><th>#</th><th>Exam</th><th>Subject</th><th>Maximum</th><th>Obtained</th><th>Grade</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><th colspan="3">Total</th><th>'+sum[1]+'</th><th>'+sum[0]+'</th><th>'+gradeFor(sum[0],sum[1])+'</th></tr></tfoot></table><p><b>Overall percentage:</b> '+(sum[1]?((sum[0]/sum[1])*100).toFixed(1):"0")+'%</p><p class="note">SAMPLE / DEMONSTRATION MARKSHEET — NOT AN OFFICIAL SCHOOL RECORD</p><div class="foot"><span>Class Teacher Signature</span><span>Principal Signature</span></div><button onclick="window.print()">Print / Save PDF</button></body></html>';
+ var html='<!doctype html><html><head><title>Demo Marksheet · '+text(student.name)+'</title><style>body{font:14px Arial,sans-serif;padding:25px;color:#163151}h1{text-align:center;margin:0}header{text-align:center;border-bottom:2px solid #163151;padding-bottom:18px}h2{text-align:center}table{width:100%;border-collapse:collapse;margin-top:25px}td,th{border:1px solid #cbd5e1;padding:11px;text-align:left}th{background:#eaf0fa}.note{color:#a05a16}.foot{display:flex;justify-content:space-between;margin-top:60px}button{padding:10px;margin-top:20px}@media print{button{display:none}}</style></head><body><header><h1>'+text(d.school.name)+'</h1><p>'+text(d.school.address)+'</p></header><h2>STUDENT RESULT / MARKSHEET — DEMO</h2><p><b>Exam:</b> '+text(d.exams.find(function(e){return e.id===selectedExam;})?.name||"All recorded exams") +'</p><p><b>Name:</b> '+text(student.name)+' &nbsp; <b>Admission:</b> '+text(student.admissionNo)+'<br><b>Class:</b> '+text(student.grade)+' · '+text(student.section)+' &nbsp; <b>Year:</b> '+text(d.school.year)+'</p><table><thead><tr><th>#</th><th>Exam</th><th>Subject</th><th>Maximum</th><th>Obtained</th><th>Grade</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><th colspan="3">Total</th><th>'+sum[1]+'</th><th>'+sum[0]+'</th><th>'+gradeFor(sum[0],sum[1])+'</th></tr></tfoot></table><p><b>Overall percentage:</b> '+(sum[1]?((sum[0]/sum[1])*100).toFixed(1):"0")+'%</p><p class="note">SAMPLE / DEMONSTRATION MARKSHEET — NOT AN OFFICIAL SCHOOL RECORD</p><div class="foot"><span>Class Teacher Signature</span><span>Principal Signature</span></div><button onclick="window.print()">Print / Save PDF</button></body></html>';
  var w=window.open("","_blank","width=900,height=740");if(!w){alert("Allow pop-ups to print.");return;}w.document.write(html);w.document.close();
 }
+function printMarks(){printMarksFor(value("lavMarkStudent"),value("lavMarkExam"));}
 function renderEnhancedPage(page){
  load();if(page==="Overview")return overview();
  if(page==="Teachers")return teachers();
@@ -264,6 +270,7 @@ function bindEnhancedPage(page){
  var restoreInput=document.getElementById("lavRestoreInput");
  if(restoreInput)restoreInput.onchange=function(){restore(restoreInput.files[0]);};
 }
+window.LavAcademicData={school:()=>load().school,classes:()=>load().classes,exams:()=>load().exams,marks:()=>load().marks,exportCSV,printMarksFor};
 window.renderEnhancedPage=renderEnhancedPage;
 window.bindEnhancedPage=bindEnhancedPage;
 })();
