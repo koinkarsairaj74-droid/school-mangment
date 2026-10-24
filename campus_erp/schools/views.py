@@ -11,6 +11,55 @@ from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ValidationError
 from .models import School, User, Student, Classroom, FacultyAssignment, AttendanceSession, AttendanceRecord, FeeInvoice, Payment, ParentLink
 
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_protect
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+
+def home(request):
+    if not request.user.is_authenticated:
+        return redirect("login")
+    user = request.user
+    if user.role == User.Role.PLATFORM_ADMIN:
+        return redirect("/django-admin/")
+    school, error = context(request)
+    if error:
+        return render(request, "school_error.html", {"message": "Your school account is inactive or incomplete."}, status=403)
+    allowed = {
+        "students": user.role in (User.Role.SCHOOL_ADMIN, User.Role.TEACHER, User.Role.PARENT),
+        "attendance": user.role in (User.Role.SCHOOL_ADMIN, User.Role.TEACHER, User.Role.PARENT),
+        "fees": user.role in (User.Role.SCHOOL_ADMIN, User.Role.PARENT),
+    }
+    return render(request, "school_dashboard.html", {
+        "school": school, "role": user.get_role_display(), "allowed": allowed,
+        "student_count": student_queryset(user, school).count()
+    })
+
+@csrf_protect
+@require_http_methods(["GET", "POST"])
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect("home")
+    error = None
+    if request.method == "POST":
+        username = str(request.POST.get("username", "")).strip()
+        password = request.POST.get("password", "")
+        user = authenticate(request, username=username, password=password)
+        if user is None or not user.is_active:
+            error = "Invalid username or password."
+        elif user.role != User.Role.PLATFORM_ADMIN and (not user.school_id or not user.school.active):
+            error = "This school account is not active."
+        else:
+            login(request, user)
+            return redirect("home")
+    return render(request, "login.html", {"error": error})
+
+@require_POST
+def logout_view(request):
+    logout(request)
+    return redirect("login")
+
 def health(request):
     return JsonResponse({"ok": True, "service": "campus-erp"})
 
