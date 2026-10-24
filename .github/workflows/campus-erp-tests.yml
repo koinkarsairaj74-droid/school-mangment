@@ -1,0 +1,35 @@
+name: Campus ERP backend checks
+on:
+  push:
+    branches: [campus-erp-v1]
+  pull_request:
+    paths: ["campus_erp/**"]
+permissions:
+  contents: read
+jobs:
+  django-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: campus_erp
+    env:
+      DJANGO_SECRET_KEY: github-actions-test-only-secret-long-enough-not-production
+      DJANGO_DEBUG: "true"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+      ENABLE_HTTPS_REDIRECT: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: campus_erp/requirements.txt
+      - run: pip install -r requirements.txt
+      - name: Verify Django configuration
+        run: python manage.py check
+      - name: Create provisional schema (until checked-in migrations)
+        run: python manage.py makemigrations schools --noinput
+      - name: Migrate test database
+        run: python manage.py migrate --noinput
+      - name: Multi-school access isolation tests
+        run: python manage.py test schools --verbosity 2
