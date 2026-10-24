@@ -321,6 +321,10 @@ function saveAttendanceDemo(){
  const session={id:"att-"+Date.now(),date:attendanceDraft.date,teacher:attendanceDraft.teacher,grade:attendanceDraft.grade,section:attendanceDraft.section,division:attendanceDraft.section,subject:attendanceDraft.subject,lecture:attendanceDraft.lecture,total:counts.total,present:counts.present,absent:counts.absent,photoName:attendanceDraft.photoName,photoData:attendanceDraft.photoData,students:counts.roster.map(s=>({id:s.id,name:s.name,admissionNo:s.admissionNo,status:attendanceDraft.statuses[s.id]})),savedAt:new Date().toISOString()};
  try{
   const sessions=loadAttendanceSessions();
+  const duplicate=sessions.find(s=>
+    s.date===session.date&&s.grade===session.grade&&s.section===session.section&&
+    s.subject===session.subject&&s.lecture===session.lecture&&s.teacher===session.teacher);
+  if(duplicate){alert("Attendance for this teacher, date, class, subject and period has already been saved. Duplicate submissions are blocked to protect accuracy.");return;}
   sessions.unshift(session);
   localStorage.setItem(ATTENDANCE_STORE_KEY,JSON.stringify(sessions.slice(0,10)));
   attendanceLastSummary=session;
@@ -433,11 +437,12 @@ function saveFeeReceiptDemo(){
  if(!student){alert("Please select a student first.");$("feeStudent").focus();return;}
  if(selectedFeeItems().length===0&&total.previous<=0){alert("Select at least one fee and enter an amount, or select a student with an outstanding balance.");return;}
  if(Number(feeDraft.customAmount)>0&&!feeDraft.customName.trim()){alert("Enter a custom fee name.");$("feeCustomName").focus();return;}
+ if(FEE_CATEGORIES.some(n=>feeDraft.fees[n]!==""&&!Number.isFinite(Number(feeDraft.fees[n])))||!Number.isFinite(Number(feeDraft.customAmount||0))){alert("Every fee amount must be a valid number.");return;}
  if(FEE_CATEGORIES.some(n=>Number(feeDraft.fees[n])<0)||Number(feeDraft.customAmount)<0){alert("Fee amounts cannot be negative.");return;}
  if(!feeDraft.paymentDate){alert("Please select the payment date.");$("feeDate").focus();return;}
  if(!feeDraft.paymentMode){alert("Please select a payment mode.");$("feeMode").focus();return;}
  if(total.due<=0){alert("There is no fee or previous balance to pay.");return;}
- if(total.paid<=0){alert("Enter an amount paid greater than zero.");$("feePaid").focus();return;}
+ if(!Number.isFinite(Number(feeDraft.amountPaid))||total.paid<=0){alert("Enter a valid payment amount greater than zero.");$("feePaid").focus();return;}
  if(total.overpaid>0.0001){alert("Amount paid is greater than the total due. Please correct the amount.");$("feePaid").focus();return;}
  const receipts=loadFeeReceipts();
  const receipt={id:"fee-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),receiptNo:nextFeeReceiptNumber(feeDraft.paymentDate),schoolName:"NXT GEN ENGLISH SCHOOL",schoolAddress:"Dream City Nagar, Appawadi, Pune, Maharashtra",studentId:student.id,studentName:student.name,admissionNo:student.admissionNo||"—",grade:student.grade||"—",section:student.section||"—",feeType:selectedFeeItems().length?selectedFeeItems().map(x=>x.name).join(", "):"Previous Outstanding Balance Payment",feeItems:selectedFeeItems(),totalFee:total.total,previousBalance:total.previous,amountPaid:total.paid,remainingBalance:total.balance,paymentMode:feeDraft.paymentMode,paymentDate:feeDraft.paymentDate,transactionId:feeDraft.transactionId.trim(),bankApp:feeDraft.bankApp.trim(),principalSignature:"",accountantSignature:"",schoolStamp:"NXT GEN ENGLISH SCHOOL",demo:true,createdAt:new Date().toISOString()};
