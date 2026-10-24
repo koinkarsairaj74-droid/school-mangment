@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#142b52">
+<meta name="robots" content="noindex">
+<meta name="description" content="NXT GEN English School teacher dashboard — demonstration only">
+<title>Teacher Portal | NXT GEN English School</title>
+<link rel="stylesheet" href="teacher.css?v=20261024a">
+<script src="teacher.js?v=20261024a" defer></script>
+</head>
+<body>
+<div class="site-note"><span class="status-dot"></span> INTERACTIVE DEMO · This is not secure authentication or a shared school database</div>
+<section class="login-wrap" id="loginScreen" aria-labelledby="loginHeading">
+ <a href="./" class="back-link">← Back to School Management</a>
+ <div class="login-card">
+  <div class="login-art">
+   <div class="crest"><span>N</span><small>NXT GEN</small></div>
+   <span class="overline">NXT GEN ENGLISH SCHOOL · 2026–27</span>
+   <h1>Teach with clarity.<br><em>Manage with ease.</em></h1>
+   <p>A focused workspace for class attendance, lesson schedules, student records and assessments.</p>
+   <div class="art-stat"><strong>One classroom, one organized day.</strong><span>Teacher Workspace · LAV SMS Demo</span></div>
+   <div class="art-shape one"></div><div class="art-shape two"></div>
+  </div>
+  <div class="login-main">
+   <div class="tag">TEACHER ACCESS · DEMO</div>
+   <h2 id="loginHeading">Teacher Login</h2>
+   <p class="muted">Select a teacher record to explore the working demonstration portal.</p>
+   <form id="teacherLoginForm" novalidate>
+    <label for="teacherSelect">Teacher account</label>
+    <select id="teacherSelect" required></select>
+    <label for="teacherCode">Demo access code</label>
+    <div class="password-row"><input id="teacherCode" type="password" placeholder="Enter demo access code" autocomplete="off" required><button type="button" id="showCode" aria-label="Show or hide demo code">Show</button></div>
+    <p class="form-error" id="loginError" role="alert" hidden></p>
+    <button class="primary enter" type="submit">Open Teacher Dashboard <span>→</span></button>
+   </form>
+   <div class="login-hint"><b>Presentation demo credentials</b><span>Access code: <code>TEACHER2026</code></span><small>Public demo code. Real staff passwords and permissions require a secure server.</small></div>
+   <div class="login-bottom"><span>Dream City Nagar, Appawadi, Pune</span><span>2026–27</span></div>
+  </div>
+ </div>
+</section>
+<div id="teacherApp" class="app" hidden>
+ <aside class="app-nav" aria-label="Teacher portal navigation">
+  <div class="app-brand"><div class="app-mark">N</div><div><b>NXT GEN</b><small>TEACHER WORKSPACE</small></div></div>
+  <div class="nav-head">MY WORKSPACE</div>
+  <div class="nav-items" id="teacherNav">
+   <button type="button" class="tab active" data-tab="overview"><span>▦</span> Overview</button>
+   <button type="button" class="tab" data-tab="attendance"><span>✓</span> Take Attendance</button>
+   <button type="button" class="tab" data-tab="students"><span>♙</span> My Students</button>
+   <button type="button" class="tab" data-tab="timetable"><span>◷</span> My Timetable</button>
+   <button type="button" class="tab" data-tab="marks"><span>✎</span> Enter Marks</button>
+   <button type="button" class="tab" data-tab="records"><span>▤</span> My Records</button>
+  </div>
+  <div class="nav-bottom"><a href="./">↗ School Admin Demo</a><button id="logoutSide" type="button">⇥ Log Out</button></div>
+ </aside>
+ <div class="app-main">
+  <header class="app-top">
+   <div><small>TEACHER PORTAL / <span id="breadcrumb">Overview</span></small><h1 id="pageTitle">Teacher Overview</h1></div>
+   <div class="top-actions"><span class="mode-tag">DEMO MODE</span><div class="account-badge" id="teacherInitials">T</div><button class="logout-button" type="button" id="logoutTop" aria-label="Log out">Log out</button></div>
+  </header>
+  <main id="teacherContent" aria-live="polite"></main>
+  <footer class="app-footer">NXT GEN ENGLISH SCHOOL · Teacher dashboard demonstration. Saved records are visible only in this browser, not across devices.</footer>
+ </div>
+</div>
+<div class="toast" id="teacherToast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
