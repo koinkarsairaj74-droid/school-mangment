@@ -1,7 +1,11 @@
 #!/bin/sh
 set -eu
 cd /var/www/html
-: "${APP_KEY:?Set a private APP_KEY in Render Environment}"
+# APP_KEY_SEED is generated and retained by Render; derive a 32-byte Laravel key.
+if [ -z "${APP_KEY:-}" ]; then
+  : "${APP_KEY_SEED:?Set APP_KEY or private APP_KEY_SEED in Render Environment}"
+  export APP_KEY="$(php -r 'echo "base64:".base64_encode(hash("sha256",getenv("APP_KEY_SEED"),true));')"
+fi
 : "${DEMO_ADMIN_PASSWORD:?Set a private DEMO_ADMIN_PASSWORD in Render Environment}"
 [ "${#DEMO_ADMIN_PASSWORD}" -ge 16 ] || { echo "DEMO_ADMIN_PASSWORD must be 16+ characters" >&2; exit 1; }
 export DB_CONNECTION="${DB_CONNECTION:-sqlite}"
