@@ -1,5 +1,6 @@
 """Multi-school data model. Every school-owned query must include school_id."""
 from django.conf import settings
+from django.contrib.auth.models import UserManager
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -18,6 +19,16 @@ class School(models.Model):
     def __str__(self):
         return self.name
 
+class CampusUserManager(UserManager):
+    """Create an operator correctly while keeping tenant roles explicit."""
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
+        extra_fields["role"] = "platform_admin"
+        extra_fields["school"] = None
+        extra_fields["is_staff"] = True
+        extra_fields["is_superuser"] = True
+        return super().create_superuser(username, email=email, password=password, **extra_fields)
+
+
 class User(AbstractUser):
     class Role(models.TextChoices):
         PLATFORM_ADMIN = "platform_admin", "Platform admin"
@@ -28,6 +39,7 @@ class User(AbstractUser):
     school = models.ForeignKey(School, on_delete=models.PROTECT, null=True, blank=True, related_name="users")
     role = models.CharField(max_length=22, choices=Role.choices, default=Role.STUDENT)
     must_change_password = models.BooleanField(default=True)
+    objects = CampusUserManager()
 
     def clean(self):
         super().clean()
