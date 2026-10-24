@@ -272,7 +272,7 @@ var student=records.Students.find(function(x){return x.id===id;});if(!student){a
 function printMarks(){printMarksFor(value("lavMarkStudent"),value("lavMarkExam"));}
 function renderEnhancedPage(page){
  load();if(page==="Overview")return overview();
- if(page==="Teachers")return window.LavFacultyAssignments?window.LavFacultyAssignments.page():teachers();
+ if(page==="Teachers"){assure("Teachers");return window.LavFacultyAssignments?window.LavFacultyAssignments.page():teachers();}
  if(page==="Classes")return classes();
  if(page==="Timetable")return timetable();
  if(page==="Exams & Marks")return exams();
