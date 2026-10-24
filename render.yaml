@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: lav-sms-school-demo
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    autoDeploy: false
+    healthCheckPath: /login
+    envVars:
+      - key: APP_NAME
+        value: NXT GEN English School DEMO
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: 'false'
+      - key: APP_URL
+        value: https://lav-sms-school-demo.onrender.com
+      - key: APP_KEY
+        generateValue: true
+      - key: DEMO_ADMIN_PASSWORD
+        generateValue: true
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: DB_DATABASE
+        value: /var/www/html/database/demo.sqlite
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_DRIVER
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
