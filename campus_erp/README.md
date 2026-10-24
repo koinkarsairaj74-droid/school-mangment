@@ -33,7 +33,7 @@ python manage.py runserver
 
 ## Before putting school data into production
 - Provision a PostgreSQL database, HTTPS, encrypted backups, secure session controls and a production secret.
-- The platform operator Django admin has a superuser-only, role-checked gate. During initial local setup, create a Django superuser and, using a trusted management shell, set role to `platform_admin` and school to `None` before using `/django-admin/`. Build a secure first-party client onboarding workflow and role-specific school administration interface before launch.
+- The platform operator Django admin has a superuser-only, role-checked gate. The custom user manager now assigns the `platform_admin` role and an empty school to newly created superusers, so `python manage.py createsuperuser` can create a usable operator account. Build a secure first-party client onboarding workflow and role-specific school administration interface before launch.
 - Add reviewed Django migrations to version control before deploying. The GitHub Actions development workflow provisionally generates migrations before the test suite; that is not a substitute for reviewed release migrations. The application is not yet launchable with `migrate` alone.
 - Enforce tenant scoping on **every new endpoint**, admin action, background job and file access. The vanilla Django admin registered here is **not multi-tenant safe** for client staff. Keep /django-admin/ restricted to trusted platform operators until tenant-aware admin controls are built.
 - Implement billing, invoice issuance, signed payment-gateway webhooks, audit logs and refunds before enabling real payments.
