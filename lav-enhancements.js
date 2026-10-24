@@ -87,6 +87,7 @@ function exams(){
 function parents(){
  var all=assure("Parents");
  var arr=filter(all,["name","detail","phone","email","status"]);
+ var q=norm(document.getElementById("search")?.value);if(q)arr=all.filter(function(p){return [p.name,p.detail,p.phone,p.email,p.status].concat(records.Students.filter(function(s){return norm(s.parent)===norm(p.name);}).map(function(s){return s.name+" "+s.admissionNo+" "+s.grade;})).join(" ").toLowerCase().includes(q);});
  var rows=arr.map(function(p){
   var children=records.Students.filter(function(s){return norm(s.parent)===norm(p.name);}).slice(0,5);
   return '<tr><td><b>'+text(p.name)+'</b></td><td>'+text(p.phone||"—")+'<small class="lav-sub">'+text(p.email||"")+'</small></td><td>'+text(children.map(function(c){return c.name+" ("+c.grade+")";}).join(", ")||p.detail||"No linked student")+'</td><td><span class="badge">'+text(p.status||"Active")+'</span></td><td>'+actions("Parents",p.id)+'</td></tr>';}).join("");
@@ -147,7 +148,7 @@ function modal(kind,id){
   if(idx>=0)list[idx]=next;else list.push(next);
   persist(kind);closeModal();render();
  };
- var first=shell.querySelector("input,select");if(first)first.focus();
+ if(kind==="marks"&&window.LavSearch)window.LavSearch.attachStudentPicker("lav-field-studentId");var first=shell.querySelector("input,select");if(first)first.focus();
 }
 function closeModal(){var x=document.getElementById("lavModal");if(x)x.remove();}
 function validate(kind,data,obj){
@@ -257,6 +258,7 @@ function bindEnhancedPage(page){
   if(a==="backup")backup();
   if(a==="print-marks")printMarks();
  };});
+ if(page==="Exams & Marks"&&window.LavSearch)window.LavSearch.attachStudentPicker("lavMarkStudent");
  var form=document.getElementById("lavSettingsForm");
  if(form)form.onsubmit=function(e){e.preventDefault();var data={};for(var x of new FormData(form).entries())data[x[0]]=String(x[1]).trim();if(!data.name||!data.address||!data.year){alert("School name, year and address are required.");return;}Object.assign(load().school,data);if(save()){alert("School details saved in this browser demo.");render();}};
  var restoreInput=document.getElementById("lavRestoreInput");
