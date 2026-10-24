@@ -1,0 +1,32 @@
+/* LAV SMS search system: module-wide and student/marksheet/certificate finders */
+.lav-search-toolbar{display:flex;align-items:center;gap:12px;padding:12px 16px;margin-bottom:16px;border:1px solid #e1e7f7;background:linear-gradient(115deg,#fffefce8,#f7faffeb);box-shadow:0 6px 18px #23396309;min-width:0}
+.lav-search-icon{display:grid;place-items:center;width:40px;height:40px;flex-shrink:0;background:#e9eeff;border-radius:13px;color:#5063ce;font-size:27px;line-height:1}
+.lav-search-field{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.lav-search-field span{font-size:9px;letter-spacing:.15em;font-weight:850;color:#7c8aa5}
+.lav-search-field input{padding:4px 0;border:0;background:transparent;color:var(--ink);font-size:14px;width:100%;outline:none;min-width:0;appearance:none}
+.lav-search-field input::placeholder{color:#8996b2}
+.lav-search-clear{border:1px solid #dce3f3;padding:9px 13px;border-radius:11px;background:#f2f5fd;color:#556582;font-size:12px;font-weight:750}
+.lav-search-clear:hover{background:#e4eaff}
+.lav-student-finder{position:relative;margin:6px 0 10px;z-index:4}
+.lav-student-finder-input{display:block!important;box-sizing:border-box;width:100%;min-height:42px;padding:10px 12px!important;border:1px solid #bdc9e4!important;border-radius:11px!important;background:#f5f8ff!important;color:#193152!important;font:inherit!important;outline:none}
+.lav-student-finder-input:focus{border-color:#5b73e6!important;box-shadow:0 0 0 3px #768be823}
+.lav-student-finder-results{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:30;max-height:255px;overflow:auto;background:#fff;color:#1a2a48;box-shadow:0 20px 48px #1525472d;border:1px solid #d9e1f5;border-radius:13px;padding:5px}
+.lav-student-finder-results[hidden],.lav-quick-results[hidden],[data-cert-history][hidden],.lav-field[hidden],.lav-table tr[hidden]{display:none!important}
+.lav-finder-count{padding:8px 11px;color:#76849c;font-size:10px;font-weight:750;letter-spacing:.05em}
+.lav-student-finder-results button{display:flex;flex-direction:column;gap:4px;width:100%;border:0;border-radius:8px;text-align:left;padding:10px 12px;background:#fff;color:#1f3252}
+.lav-student-finder-results button:hover,.lav-student-finder-results button:focus{background:#eef2ff}
+.lav-student-finder-results button b{font-size:12px}
+.lav-student-finder-results button small{font-size:10px;color:#7385a1}
+.lav-finder-empty{font-size:12px;padding:12px;color:#64748b}
+.lav-quick-results{padding:14px 16px;margin:-5px 0 16px}
+.lav-quick-head{display:flex;justify-content:space-between;gap:10px;padding:2px 0 10px}.lav-quick-head b{font-size:12px}.lav-quick-head small{font-size:11px;color:var(--muted)}
+.lav-quick-results button{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;width:100%;background:transparent;color:var(--ink);border:0;border-top:1px solid var(--line);text-align:left}
+.lav-quick-results button:hover{background:#edf2ff}.lav-quick-results b{font-size:12px}.lav-quick-results small{color:var(--muted);font-size:11px}
+.lav-quick-results p{font-size:12px;color:var(--muted)}
+body.dark .lav-search-toolbar{background:#222d45;border-color:#36415b}
+body.dark .lav-student-finder-input{background:#202941!important;color:#eef1ff!important;border-color:#3d4b6b!important}
+body.dark .lav-student-finder-results{background:#1d2741;color:#eef1ff;border-color:#3b4963}
+body.dark .lav-student-finder-results button{background:#1d2741;color:#eef1ff}
+body.dark .lav-student-finder-results button:hover{background:#303b5b}
+body.dark .lav-search-clear{background:#344260;color:#e3eafe;border-color:#3d4965}
+@media(max-width:600px){.lav-search-toolbar{gap:9px;padding:10px 12px}.lav-search-icon{height:35px;width:35px;font-size:23px}.lav-search-field span{font-size:8px}.lav-search-field input{font-size:12px}.lav-search-clear{font-size:11px;padding:7px 9px}.lav-student-finder-results{max-height:250px}}
