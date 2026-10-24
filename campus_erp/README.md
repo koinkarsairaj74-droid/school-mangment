@@ -33,8 +33,8 @@ python manage.py runserver
 
 ## Before putting school data into production
 - Provision a PostgreSQL database, HTTPS, encrypted backups, secure session controls and a production secret.
-- Add a protected platform-admin workflow to create a school and its initial admin.
-- Add Django migrations to version control before deploying. The application is not yet launchable with `migrate` alone.
+- The platform operator Django admin has a superuser-only, role-checked gate. During initial local setup, create a Django superuser and, using a trusted management shell, set role to `platform_admin` and school to `None` before using `/django-admin/`. Build a secure first-party client onboarding workflow and role-specific school administration interface before launch.
+- Add reviewed Django migrations to version control before deploying. The GitHub Actions development workflow provisionally generates migrations before the test suite; that is not a substitute for reviewed release migrations. The application is not yet launchable with `migrate` alone.
 - Enforce tenant scoping on **every new endpoint**, admin action, background job and file access. The vanilla Django admin registered here is **not multi-tenant safe** for client staff. Keep /django-admin/ restricted to trusted platform operators until tenant-aware admin controls are built.
 - Implement billing, invoice issuance, signed payment-gateway webhooks, audit logs and refunds before enabling real payments.
 - Add test coverage for each school/user role, user input validation, timetable overlaps, transaction handling and concurrency.
@@ -48,4 +48,4 @@ python manage.py runserver
 - `GET/POST /api/v1/attendance/` (only assigned teachers can POST)
 - `GET /api/v1/fee-receipts/` (school admin or linked parent)
 
-Authentication relies on Django's session authentication (and CSRF protection). UI login screens, school onboarding, complete fees workflows, report generation and actual production hosting remain to be built. Do not use the old GitHub Pages demo as a login gateway for this backend.
+Authentication uses Django sessions, password hashing and CSRF protection. Basic original templates now provide `/login/`, `/logout/` (POST), and a school-branded `/` dashboard. The dashboard currently links to JSON API views rather than full editable screens. School onboarding, client billing, full timetable/student/fee UI, report generation, verified migrations and actual production hosting remain to be built. Do not use the old GitHub Pages demo as a login gateway for this backend.
