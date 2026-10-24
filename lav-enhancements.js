@@ -278,7 +278,7 @@ function bindEnhancedPage(page){
  var restoreInput=document.getElementById("lavRestoreInput");
  if(restoreInput)restoreInput.onchange=function(){restore(restoreInput.files[0]);};
 }
-window.LavAcademicData={school:()=>load().school,classes:()=>load().classes,exams:()=>load().exams,marks:()=>load().marks,exportCSV,printMarksFor};
+window.LavAcademicData={school:()=>load().school,classes:()=>load().classes,timetable:()=>load().timetable,exams:()=>load().exams,marks:()=>load().marks,exportCSV,printMarksFor};
 window.renderEnhancedPage=renderEnhancedPage;
 window.bindEnhancedPage=bindEnhancedPage;
 })();
