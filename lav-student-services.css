@@ -1,0 +1,42 @@
+
+/* Admissions dossier UI — demo */
+.lav-pr-overlay{position:fixed;inset:0;background:#1725429c;backdrop-filter:blur(8px);z-index:125;display:flex;align-items:center;justify-content:center;padding:16px}
+.lav-pr-panel{width:min(940px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#fff;border-radius:22px;box-shadow:0 24px 80px #14294c48}
+.lav-pr-head{position:sticky;top:0;z-index:2;background:#f7f9ff;display:flex;align-items:center;justify-content:space-between;padding:13px 21px;border-bottom:1px solid #dce4f2;gap:12px}
+.lav-pr-head b{font-size:11px;letter-spacing:.12em;color:#62759d}
+.lav-pr-head button{border:0;border-radius:9px;background:#e7ebf5;color:#415271;padding:9px 12px;font-weight:750}
+.lav-pr-body{padding:20px 24px 26px}
+.lav-pr-hero{display:flex;align-items:center;gap:16px;background:linear-gradient(110deg,#edf3ff,#f7efff);padding:22px;border-radius:17px}
+.lav-pr-circle{width:65px;height:65px;border-radius:20px;display:grid;place-items:center;background:#4f66c6;color:white;font-size:24px;font-weight:850;flex-shrink:0}
+.lav-pr-hero h2{font-size:25px;margin:3px 0;letter-spacing:-.04em}
+.lav-pr-hero p{margin:0;color:#60708d}
+.lav-pr-hero small{font-size:10px;color:#5064a7;font-weight:800;letter-spacing:.1em}
+.lav-pr-actions{display:flex;flex-wrap:wrap;gap:8px;margin:17px 0}
+.lav-pr-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.lav-pr-kpis>div{border:1px solid #e3e9f4;border-radius:14px;padding:15px;min-width:0}
+.lav-pr-kpis small,.lav-pr-kpis span{display:block;color:#7b879b;font-size:11px}
+.lav-pr-kpis b{display:block;font-size:20px;letter-spacing:-.03em;margin:4px 0;word-break:break-word}
+.lav-pr-body h3{font-size:16px;margin:25px 0 11px;letter-spacing:-.03em}
+.lav-pr-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.lav-pr-info{border:1px solid #e3e9f4;background:#f9faff;border-radius:12px;padding:13px;min-width:0}
+.lav-pr-info small{color:#7887a0;display:block;font-size:10px;margin-bottom:4px}
+.lav-pr-info b{font-size:12px;word-wrap:break-word}
+.lav-pr-history{border:1px solid #e3e9f4;border-radius:12px;padding:9px 14px}
+.lav-pr-history p{font-size:12px;margin:0;padding:9px 0;border-bottom:1px solid #e3e9f4}
+.lav-pr-history p:last-child{border:0}
+.lav-pr-history small{color:#8994ab;margin-left:8px}
+.lav-pr-note{display:block;color:#7b859c;font-size:11px;padding:12px 2px;line-height:1.55}
+.lav-pr-move{background:white;width:min(490px,100%);max-height:calc(100vh - 35px);overflow:auto;border-radius:22px;padding:25px}
+.lav-pr-move h2{margin:0 0 12px}
+.lav-pr-move p{color:#6c7790}
+.lav-pr-move label{display:flex;flex-direction:column;gap:6px;color:#526381;font-size:12px;margin:12px 0}
+.lav-pr-move select{width:100%;height:45px;border:1px solid #dce3ef;border-radius:11px;background:white;color:#1b2d4d;padding:10px}
+.lav-pr-move>div{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:16px}
+body.dark .lav-pr-panel,body.dark .lav-pr-move{background:#19233a;color:#ecf0ff}
+body.dark .lav-pr-head{background:#222d45;border-color:#3e4b6c}
+body.dark .lav-pr-hero{background:linear-gradient(110deg,#28385b,#382948)}
+body.dark .lav-pr-hero p{color:#b7c2dd}
+body.dark .lav-pr-info,body.dark .lav-pr-kpis>div{background:#202c45;border-color:#3d4965}
+body.dark .lav-pr-history{border-color:#3d4965}
+body.dark .lav-pr-move select{background:#22304b;border-color:#44516d;color:#ecf0ff}
+@media(max-width:680px){.lav-pr-body{padding:15px}.lav-pr-hero{padding:15px}.lav-pr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lav-pr-kpis{grid-template-columns:1fr}.lav-pr-panel{max-height:calc(100vh - 16px)}.lav-pr-overlay{padding:8px}.lav-pr-hero h2{font-size:19px}}
