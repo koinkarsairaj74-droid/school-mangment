@@ -26,7 +26,31 @@ function students(){
  });
  return all;
 }
-function academic(){let d=read(A,null);if(d&&d.version===2&&Array.isArray(d.classes)&&Array.isArray(d.timetable)&&Array.isArray(d.exams)&&Array.isArray(d.marks))return d;let cls=[];["Nursery","Junior KG","Senior KG",...Array.from({length:10},(_,i)=>"Class "+(i+1))].forEach(name=>(name==="Class 8"?["A","B","C","D"]:["A"]).forEach(section=>cls.push({name,section,teacher:name==="Class 8"?(section==="A"?"Mrs. Meera Kulkarni":"Mr. Rahul Deshmukh"):"",status:"Active"})));let tt=["Monday","Tuesday","Wednesday","Thursday","Friday"].map((day,i)=>({day,grade:"Class 8",section:"A",period:"1",start:"09:00",end:"09:45",subject:["Mathematics","Science","English","Social Science","Marathi"][i],teacher:"Mrs. Meera Kulkarni",room:"101"}));return {version:2,classes:cls,timetable:tt,exams:[{id:"exam-one",name:"Monthly Assessment",year:"2026-2027"}],marks:[],school:{name:"NXT GEN ENGLISH SCHOOL"}}}
+function academic(){
+ let d=read(A,null);
+ if(d&&d.version===2&&Array.isArray(d.classes)&&Array.isArray(d.timetable)&&Array.isArray(d.exams)&&Array.isArray(d.marks))return d;
+ // Same first-visit demo curriculum and teacher assignments as the admin.
+ const demoAssignments=[
+  ["Class 8","A","Mrs. Meera Kulkarni","Mathematics","101"],
+  ["Class 8","B","Mr. Rahul Deshmukh","Science","102"],
+  ["Class 8","C","Ms. Neha Shah","English","103"],
+  ["Class 8","D","Mr. Amit Jadhav","Social Science","104"],
+  ["Class 7","A","Mrs. Kavita Pawar","Marathi","105"],
+  ["Class 6","A","Mr. Sandeep More","Computer","106"]
+ ];
+ const cls=[];
+ ["Nursery","Junior KG","Senior KG",...Array.from({length:10},(_,i)=>"Class "+(i+1))].forEach(name=>{
+  (name==="Class 8"?["A","B","C","D"]:["A"]).forEach(section=>{
+   const match=demoAssignments.find(a=>a[0]===name&&a[1]===section);
+   cls.push({id:"default-"+name.replace(/\s/g,"")+"-"+section,name,section,teacher:match?.[2]||"",room:match?.[4]||"",status:"Active"});
+  });
+ });
+ const tt=[];
+ ["Monday","Tuesday","Wednesday","Thursday","Friday"].forEach(day=>{
+  demoAssignments.forEach(a=>tt.push({id:"sample-"+day+"-"+a[0].replace(/\s/g,"")+"-"+a[1],day,grade:a[0],section:a[1],period:"1",start:"09:00",end:"09:45",subject:a[3],teacher:a[2],room:a[4]}));
+ });
+ return {version:2,classes:cls,timetable:tt,exams:[{id:"exam-one",name:"Monthly Assessment",term:"1",year:"2026-2027",status:"Upcoming"}],marks:[],school:{name:"NXT GEN ENGLISH SCHOOL",year:"2026-2027"}};
+}
 function teachers(){let m=new Map();samples.forEach(a=>m.set(a[0].toLowerCase(),{name:a[0],subject:a[1]}));const d=academic(),stored=read(K,{Teachers:[]});(d.classes||[]).forEach(x=>{if(x.teacher&&!m.has(x.teacher.toLowerCase()))m.set(x.teacher.toLowerCase(),{name:x.teacher,subject:"General"})});(d.timetable||[]).forEach(x=>{if(x.teacher&&!m.has(x.teacher.toLowerCase()))m.set(x.teacher.toLowerCase(),{name:x.teacher,subject:x.subject})});(stored.Teachers||[]).forEach(x=>{if(x.name){if(x.status==="Inactive")m.delete(x.name.toLowerCase());else m.set(x.name.toLowerCase(),{name:x.name,subject:x.detail||x.subject||"General"})}});return [...m.values()].sort((a,b)=>a.name.localeCompare(b.name))}
 function assignments(){let found=new Map(),d=academic();d.classes.forEach(c=>{if(String(c.teacher||'').toLowerCase()===teacherName.toLowerCase()&&c.status!=="Inactive")found.set(c.name+"|"+c.section,{grade:c.name,section:c.section,role:"Class teacher"})});d.timetable.forEach(t=>{if(String(t.teacher||'').toLowerCase()===teacherName.toLowerCase()){let key=t.grade+"|"+t.section;if(!found.has(key))found.set(key,{grade:t.grade,section:t.section,role:"Subject teacher"})}});return [...found.values()]}
 function lessons(){return academic().timetable.filter(x=>String(x.teacher||'').toLowerCase()===teacherName.toLowerCase())}
