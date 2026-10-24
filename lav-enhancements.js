@@ -154,7 +154,14 @@ function closeModal(){var x=document.getElementById("lavModal");if(x)x.remove();
 function validate(kind,data,obj){
  if(kind==="Teachers"||kind==="Parents"){if(!data.name){alert("Please enter a name.");return false;}}
  if(kind==="classes"){
+  if(obj&&(obj.name!==data.name||obj.section!==data.section)&&(
+      records.Students.some(s=>s.grade===obj.name&&s.section===obj.section)||
+      load().timetable.some(t=>t.grade===obj.name&&t.section===obj.section)
+  )){alert("This section has linked students or timetable periods. Move those records first; only update its teacher or room.");return false;}
   if(load().classes.some(function(c){return c.id!==(obj&&obj.id)&&norm(c.name)===norm(data.name)&&norm(c.section)===norm(data.section);})){alert("This class and division already exist.");return false;}
+ }
+ if(kind==="Teachers"&&obj&&obj.name!==data.name){
+  if(load().classes.some(c=>c.teacher===obj.name)||load().timetable.some(t=>t.teacher===obj.name)){alert("This teacher is assigned to classes or timetable periods. Update assignments before renaming.");return false;}
  }
  if(kind==="timetable"){
   if(!load().classes.some(c=>c.name===data.grade&&c.section===data.section&&c.status!=="Inactive")){alert("Select an active class section first.");return false;}
@@ -172,7 +179,8 @@ function validate(kind,data,obj){
 }
 function remove(kind,id){
  var arr=assure(kind),obj=arr.find(function(x){return x.id===id;});if(!obj)return;
- if(kind==="classes"&&records.Students.some(function(s){return s.grade===obj.name&&s.section===obj.section;})){alert("Move students from this class before deleting it.");return;}
+ if(kind==="classes"&&(records.Students.some(function(s){return s.grade===obj.name&&s.section===obj.section;})||load().timetable.some(function(t){return t.grade===obj.name&&t.section===obj.section;}))){alert("Move students from this class before deleting it.");return;}
+ if(kind==="Teachers"&&(load().classes.some(c=>c.teacher===obj.name)||load().timetable.some(t=>t.teacher===obj.name))){alert("Teacher is assigned to a class or timetable; remove assignments first.");return;}
  if(kind==="exams"&&load().marks.some(function(m){return m.examId===id;})){alert("Delete the marks associated with this exam first.");return;}
  if(!confirm("Delete this "+kind+" demo record? This cannot be undone in this browser."))return;
  var i=arr.indexOf(obj);arr.splice(i,1);persist(kind);render();
@@ -213,7 +221,7 @@ function exportCSV(which){
  download("LAV_SMS_"+which+"_"+dateToday()+".csv","\uFEFF"+csv,"text/csv;charset=utf-8");
 }
 function backup(){
- var keys=["lavsms-demo-records","lavsms-attendance-history-v1","lavsms-fee-receipts-v1","lavsms-certificates-v1",KEY];
+ var keys=["lavsms-demo-records","lavsms-attendance-history-v1","lavsms-fee-receipts-v1","lavsms-certificates-v1","lavsms-student-history-v1",KEY];
  var out={format:"LAVSMSBrowserDemoBackup",version:1,createdAt:new Date().toISOString(),items:{}};
  keys.forEach(function(k){out.items[k]=localStorage.getItem(k);});
  download("LAV_SMS_DEMO_BACKUP_"+dateToday()+".json",JSON.stringify(out,null,2),"application/json");
@@ -224,7 +232,7 @@ function restore(file){
  var rd=new FileReader();rd.onload=function(){
   try{
    var data=JSON.parse(rd.result);if(!data||data.format!=="LAVSMSBrowserDemoBackup"||data.version!==1||!data.items||typeof data.items!=="object")throw Error("Not a valid demo backup.");
-   var keys=["lavsms-demo-records","lavsms-attendance-history-v1","lavsms-fee-receipts-v1","lavsms-certificates-v1",KEY];
+   var keys=["lavsms-demo-records","lavsms-attendance-history-v1","lavsms-fee-receipts-v1","lavsms-certificates-v1","lavsms-student-history-v1",KEY];
    if(!confirm("Restore this backup? It will replace the current browser demo data."))return;
    keys.forEach(function(k){var v=data.items[k];if(v===null||v===undefined)localStorage.removeItem(k);else if(typeof v==="string"){JSON.parse(v);localStorage.setItem(k,v);}});
    alert("Demo backup restored. The portal will reload.");location.reload();
