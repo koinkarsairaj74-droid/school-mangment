@@ -17,9 +17,27 @@ function load(){
  if(schoolData)return schoolData;
  var defaults={version:2,school:{name:"NXT GEN ENGLISH SCHOOL",address:"Dream City Nagar, Appawadi, Pune, Maharashtra",year:"2026-2027",phone:"",email:"",principal:"Principal",receiptPrefix:"LAV"},classes:[],timetable:[],exams:[{id:"exam-one",name:"Monthly Assessment",term:"1",year:"2026-2027",status:"Upcoming"}],marks:[]};
  var names=["Nursery","Junior KG","Senior KG"];for(var i=1;i<=10;i++)names.push("Class "+i);
- names.forEach(function(n){var sections=n==="Class 8"?["A","B","C","D"]:["A"];sections.forEach(function(sec){defaults.classes.push({id:uid("cls"),name:n,section:sec,teacher:n==="Class 8"?(sec==="A"?"Mrs. Meera Kulkarni":"Mr. Rahul Deshmukh"):"",room:"",status:"Active"});});});
- ["Monday","Tuesday","Wednesday","Thursday","Friday"].forEach(function(day,i){
-  defaults.timetable.push({id:uid("tt"),grade:"Class 8",section:"A",day:day,period:"1",start:"09:00",end:"09:45",subject:SUBJECTS[(i+1)%SUBJECTS.length],teacher:"Mrs. Meera Kulkarni",room:"101"});
+ // Demo-only teaching assignments. Every sample teacher has a class and a
+ // corresponding weekly subject lesson for a meaningful login demonstration.
+ var demoAssignments=[
+  ["Class 8","A","Mrs. Meera Kulkarni","Mathematics","101"],
+  ["Class 8","B","Mr. Rahul Deshmukh","Science","102"],
+  ["Class 8","C","Ms. Neha Shah","English","103"],
+  ["Class 8","D","Mr. Amit Jadhav","Social Science","104"],
+  ["Class 7","A","Mrs. Kavita Pawar","Marathi","105"],
+  ["Class 6","A","Mr. Sandeep More","Computer","106"]
+ ];
+ names.forEach(function(n){
+  var sections=n==="Class 8"?["A","B","C","D"]:["A"];
+  sections.forEach(function(sec){
+   var matching=demoAssignments.find(function(a){return a[0]===n&&a[1]===sec;});
+   defaults.classes.push({id:uid("cls"),name:n,section:sec,teacher:matching?matching[2]:"",room:matching?matching[4]:"",status:"Active"});
+  });
+ });
+ ["Monday","Tuesday","Wednesday","Thursday","Friday"].forEach(function(day){
+  demoAssignments.forEach(function(a){
+   defaults.timetable.push({id:uid("tt"),grade:a[0],section:a[1],day:day,period:"1",start:"09:00",end:"09:45",subject:a[3],teacher:a[2],room:a[4]});
+  });
  });
  try{var prev=localStorage.getItem(KEY);if(prev){var parsed=JSON.parse(prev);if(parsed&&parsed.version===2&&Array.isArray(parsed.classes)&&Array.isArray(parsed.timetable)&&Array.isArray(parsed.exams)&&Array.isArray(parsed.marks)){schoolData=parsed;schoolData.school=Object.assign(defaults.school,parsed.school||{});return schoolData;}}}catch(e){console.warn("LAV school demo data could not be loaded",e);}
  schoolData=defaults;return schoolData;
