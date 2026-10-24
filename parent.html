@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f8fafc"><meta name="robots" content="noindex">
+<meta name="description" content="NXT GEN English School parent portal, browser-only demo">
+<title>Parent Portal | NXT GEN English School</title>
+<link rel="stylesheet" href="parent.css?v=20261024-1">
+<script src="parent.js?v=20261024-1" defer></script>
+</head>
+<body>
+<div class="disclaimer">INTERACTIVE SCHOOL DEMO · Public test access only · Not secure authentication</div>
+<section class="login-screen" id="loginScreen">
+ <a class="return" href="./">← School Admin Demo</a>
+ <div class="login-shell">
+  <div class="intro"><div class="logo">N</div><span class="eyebrow">NXT GEN ENGLISH SCHOOL · 2026–27</span>
+  <h1>Stay connected to your child's learning.</h1>
+  <p>Attendance, exam results, timetable, and fee receipts in one clear parent workspace.</p>
+  <div class="intro-note">Parent Connect · Sample records only</div></div>
+  <div class="login-panel"><span class="eyebrow">PARENT ACCESS · DEMONSTRATION</span><h2>Parent Login</h2>
+  <p>Select a guardian with an enrolled student to explore the portal.</p>
+  <form id="loginForm">
+   <label for="guardianSearch">Find parent or student</label><input id="guardianSearch" type="search" placeholder="Search guardian, student or admission no." autocomplete="off">
+   <label for="guardianSelect">Guardian account</label><select id="guardianSelect" required></select>
+   <label for="accessCode">Demo access code</label><div class="password"><input id="accessCode" type="password" required autocomplete="off" placeholder="Enter demo access code"><button type="button" id="toggleCode">Show</button></div>
+   <p id="loginError" class="error" role="alert" hidden></p>
+   <button class="primary wide" type="submit">Open Parent Dashboard →</button>
+  </form>
+  <div class="credential"><b>Presentation demo</b><span>Access code: <code>PARENT2026</code></span><small>Public sample code. For real parents, a server and private account permissions are required.</small></div>
+  </div>
+ </div>
+</section>
+<div id="app" class="app" hidden>
+ <aside class="sidebar"><div class="brand"><div class="logo small-logo">N</div><div><b>NXT GEN</b><small>PARENT CONNECT</small></div></div>
+  <div class="nav-label">MY WORKSPACE</div><nav class="nav">
+  <button class="nav-item active" data-tab="overview">▦ <span>Overview</span></button>
+  <button class="nav-item" data-tab="attendance">✓ <span>Attendance</span></button>
+  <button class="nav-item" data-tab="marks">▤ <span>Results & Marks</span></button>
+  <button class="nav-item" data-tab="timetable">◷ <span>Timetable</span></button>
+  <button class="nav-item" data-tab="fees">₹ <span>Fee Receipts</span></button>
+  <button class="nav-item" data-tab="certificates">★ <span>Certificates</span></button>
+  </nav><div class="sidebar-bottom"><a href="./">↗ Admin Demo</a><button id="sideLogout" type="button">Log out</button></div>
+ </aside>
+ <div class="workspace"><header class="topbar"><div><small>PARENT PORTAL / <span id="breadcrumb">Overview</span></small><h1 id="heading">Overview</h1></div>
+ <div class="actions"><div class="guardian-initials" id="guardianInitials">P</div><button class="text-button" id="topLogout">Log out</button></div></header>
+ <div class="child-picker"><label for="childSelect">Viewing student</label><select id="childSelect"></select><span id="parentDisplay"></span></div>
+ <main id="content" aria-live="polite"></main>
+ <footer>DEMO ONLY · Information is stored on this device, not in a secure school database. No online payments are accepted.</footer>
+ </div>
+</div>
+</body></html>
