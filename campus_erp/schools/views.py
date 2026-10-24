@@ -111,7 +111,17 @@ def attendance(request):
         if user.role == User.Role.TEACHER:
             qs = qs.filter(teacher=user)
         elif user.role == User.Role.PARENT:
-            qs = qs.filter(records__student_id__in=student_queryset(user, school).values_list("id", flat=True)).distinct()
+            # Parents receive only their own child's status; never other students' data or class totals.
+            linked_ids = set(student_queryset(user, school).values_list("id", flat=True))
+            qs = qs.filter(records__student_id__in=linked_ids).distinct()
+            result = []
+            for session in qs.order_by("-date", "-id")[:150]:
+                child_records = session.records.filter(student_id__in=linked_ids)
+                for record in child_records:
+                    result.append({"session_id": session.id, "student_id": record.student_id,
+                                   "date": session.date.isoformat(), "subject": session.subject,
+                                   "period": session.period, "present": record.present})
+            return JsonResponse({"results": result})
         elif user.role != User.Role.SCHOOL_ADMIN:
             return fail("Not authorized", 403)
         return JsonResponse({"results": [{
