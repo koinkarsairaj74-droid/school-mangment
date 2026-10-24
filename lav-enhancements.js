@@ -15,7 +15,7 @@ function money(x){return Number(x||0).toLocaleString("en-IN",{style:"currency",c
 function dateToday(){return new Date().toLocaleDateString("en-CA");}
 function load(){
  if(schoolData)return schoolData;
- var defaults={version:2,school:{name:"NXT GEN ENGLISH SCHOOL",address:"Dream City Nagar, Appawadi, Pune, Maharashtra",year:"2026-2027",phone:"",email:"",principal:"Principal",receiptPrefix:"LAV"},classes:[],timetable:[],exams:[{id:"exam-one",name:"Monthly Assessment",term:"1",year:"2026-2027",status:"Upcoming"}],marks:[]};
+ var defaults={version:2,school:{name:"NXT GEN ENGLISH SCHOOL",address:"Dream City Nagar, Appawadi, Pune, Maharashtra",year:"2026-2027",phone:"",email:"",principal:"Principal",receiptPrefix:"LAV"},classes:[],timetable:[],exams:[{id:"exam-one",name:"Monthly Assessment",term:"1",year:"2026-2027",status:"Upcoming"}],marks:[],facultyAssignments:[]};
  var names=["Nursery","Junior KG","Senior KG"];for(var i=1;i<=10;i++)names.push("Class "+i);
  // Demo-only teaching assignments. Every sample teacher has a class and a
  // corresponding weekly subject lesson for a meaningful login demonstration.
@@ -39,7 +39,7 @@ function load(){
    defaults.timetable.push({id:uid("tt"),grade:a[0],section:a[1],day:day,period:"1",start:"09:00",end:"09:45",subject:a[3],teacher:a[2],room:a[4]});
   });
  });
- try{var prev=localStorage.getItem(KEY);if(prev){var parsed=JSON.parse(prev);if(parsed&&parsed.version===2&&Array.isArray(parsed.classes)&&Array.isArray(parsed.timetable)&&Array.isArray(parsed.exams)&&Array.isArray(parsed.marks)){schoolData=parsed;schoolData.school=Object.assign(defaults.school,parsed.school||{});return schoolData;}}}catch(e){console.warn("LAV school demo data could not be loaded",e);}
+ try{var prev=localStorage.getItem(KEY);if(prev){var parsed=JSON.parse(prev);if(parsed&&parsed.version===2&&Array.isArray(parsed.classes)&&Array.isArray(parsed.timetable)&&Array.isArray(parsed.exams)&&Array.isArray(parsed.marks)){schoolData=parsed;schoolData.school=Object.assign(defaults.school,parsed.school||{});if(!Array.isArray(schoolData.facultyAssignments))schoolData.facultyAssignments=[];return schoolData;}}}catch(e){console.warn("LAV school demo data could not be loaded",e);}
  schoolData=defaults;return schoolData;
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(load()));return true;}catch(e){alert("This browser could not save demo data. Check browser storage.");return false;}}
@@ -179,6 +179,7 @@ function validate(kind,data,obj){
   if(load().classes.some(function(c){return c.id!==(obj&&obj.id)&&norm(c.name)===norm(data.name)&&norm(c.section)===norm(data.section);})){alert("This class and division already exist.");return false;}
  }
  if(kind==="Teachers"&&obj&&obj.name!==data.name){
+  if(load().facultyAssignments.some(a=>String(a.teacherId)===String(obj.id)||norm(a.teacherName)===norm(obj.name))){alert("Remove or reassign this faculty member’s class allocations before renaming.");return false;}
   if(load().classes.some(c=>c.teacher===obj.name)||load().timetable.some(t=>t.teacher===obj.name)){alert("This teacher is assigned to classes or timetable periods. Update assignments before renaming.");return false;}
  }
  if(kind==="timetable"){
@@ -198,7 +199,7 @@ function validate(kind,data,obj){
 function remove(kind,id){
  var arr=assure(kind),obj=arr.find(function(x){return x.id===id;});if(!obj)return;
  if(kind==="classes"&&(records.Students.some(function(s){return s.grade===obj.name&&s.section===obj.section;})||load().timetable.some(function(t){return t.grade===obj.name&&t.section===obj.section;}))){alert("Move students from this class before deleting it.");return;}
- if(kind==="Teachers"&&(load().classes.some(c=>c.teacher===obj.name)||load().timetable.some(t=>t.teacher===obj.name))){alert("Teacher is assigned to a class or timetable; remove assignments first.");return;}
+ if(kind==="Teachers"&&(load().classes.some(c=>c.teacher===obj.name)||load().timetable.some(t=>t.teacher===obj.name)||load().facultyAssignments.some(a=>String(a.teacherId)===String(obj.id)||norm(a.teacherName)===norm(obj.name)))){alert("Teacher is assigned to a class or timetable; remove assignments first.");return;}
  if(kind==="exams"&&load().marks.some(function(m){return m.examId===id;})){alert("Delete the marks associated with this exam first.");return;}
  if(!confirm("Delete this "+kind+" demo record? This cannot be undone in this browser."))return;
  var i=arr.indexOf(obj);arr.splice(i,1);persist(kind);render();
@@ -271,7 +272,7 @@ var student=records.Students.find(function(x){return x.id===id;});if(!student){a
 function printMarks(){printMarksFor(value("lavMarkStudent"),value("lavMarkExam"));}
 function renderEnhancedPage(page){
  load();if(page==="Overview")return overview();
- if(page==="Teachers")return teachers();
+ if(page==="Teachers")return window.LavFacultyAssignments?window.LavFacultyAssignments.page():teachers();
  if(page==="Classes")return classes();
  if(page==="Timetable")return timetable();
  if(page==="Exams & Marks")return exams();
@@ -290,13 +291,14 @@ function bindEnhancedPage(page){
   if(a==="backup")backup();
   if(a==="print-marks")printMarks();
  };});
+ if(page==="Teachers"&&window.LavFacultyAssignments)window.LavFacultyAssignments.bind();
  if(page==="Exams & Marks"&&window.LavSearch)window.LavSearch.attachStudentPicker("lavMarkStudent");
  var form=document.getElementById("lavSettingsForm");
  if(form)form.onsubmit=function(e){e.preventDefault();var data={};for(var x of new FormData(form).entries())data[x[0]]=String(x[1]).trim();if(!data.name||!data.address||!data.year){alert("School name, year and address are required.");return;}Object.assign(load().school,data);if(save()){alert("School details saved in this browser demo.");render();}};
  var restoreInput=document.getElementById("lavRestoreInput");
  if(restoreInput)restoreInput.onchange=function(){restore(restoreInput.files[0]);};
 }
-window.LavAcademicData={school:()=>load().school,classes:()=>load().classes,timetable:()=>load().timetable,exams:()=>load().exams,marks:()=>load().marks,exportCSV,printMarksFor};
+window.LavAcademicData={raw:()=>load(),editFaculty:id=>modal("Teachers",id),removeFaculty:id=>remove("Teachers",id),school:()=>load().school,classes:()=>load().classes,timetable:()=>load().timetable,exams:()=>load().exams,marks:()=>load().marks,exportCSV,printMarksFor};
 window.renderEnhancedPage=renderEnhancedPage;
 window.bindEnhancedPage=bindEnhancedPage;
 })();
