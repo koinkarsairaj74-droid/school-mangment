@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block title %}{{ school.name }} · Dashboard{% endblock %}{% block content %}
+<main><span class="eyebrow">{{ role }} · School workspace</span><h1>{{ school.name }}</h1><p>{{ school.address|default:"Your school's administration workspace." }}</p>
+<div class="kpis"><div class="kpi"><small>Your accessible students</small><b>{{ student_count }}</b></div><div class="kpi"><small>Account role</small><b style="font-size:19px">{{ role }}</b></div><div class="kpi"><small>School ID</small><b>{{ school.id }}</b></div></div>
+<div class="modules">
+{% if allowed.students %}<section class="module"><h2>Students</h2><p>School-scoped roster; parents see only linked children, teachers see assigned classes.</p><a href="{% url 'students' %}">View API records ↗</a></section>{% endif %}
+{% if allowed.attendance %}<section class="module"><h2>Attendance</h2><p>Teacher-led attendance with complete rosters and duplicate-session protection.</p><a href="{% url 'attendance' %}">View API records ↗</a></section>{% endif %}
+{% if allowed.fees %}<section class="module"><h2>Fee payments</h2><p>View payments within your school and permitted students only.</p><a href="{% url 'fee_receipts' %}">View API records ↗</a></section>{% endif %}
+</div><p class="note">Backend foundation preview: the API returns JSON. Admin forms, timetable editor, reports, client onboarding and production deployment are still being built. Do not enter real children's data until security review is complete.</p></main>{% endblock %}
